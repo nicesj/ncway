@@ -1,5 +1,9 @@
 # ncway
 
+## [server](/server)
+
+## [client](/client)
+
 # Prerequsite
 
 ```
