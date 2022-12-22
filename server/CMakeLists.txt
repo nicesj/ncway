@@ -9,6 +9,7 @@ pkg_check_modules(pkgs REQUIRED
 	wayland-egl
 	libinput
 	libudev
+	libdrm
 )
 
 foreach(CFLAG ${pkgs_CFLAGS})
