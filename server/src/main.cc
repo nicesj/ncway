@@ -2,6 +2,7 @@
 
 #include "subsystem.h"
 #include "subsystem/input.h"
+#include "subsystem/drm.h"
 #include "event.h"
 
 #include <cstring>
@@ -36,6 +37,12 @@ int main(int argc, char *argv[])
 	}
 
 	ncway::Input *input = ncway::Input::Create(DEFAULT_SEAT);
+	if (!input) {
+		fprintf(stderr, "Failed to create the Input");
+		wl_display_destroy(display);
+		return -EFAULT;
+	}
+
 	wl_event_source *event_source = wl_event_loop_add_fd(event_loop, input->getFD(), WL_EVENT_READABLE, ncway::Event::eventHandler, input);
 	if (!event_source) {
 		fprintf(stderr, "Failed to add the input fd to the wl_event_loop\n");
@@ -44,9 +51,18 @@ int main(int argc, char *argv[])
 		return -EFAULT;
 	}
 
+	ncway::DRM *drm = ncway::DRM::Create("/dev/dri/card0");
+	if (!drm) {
+		fprintf(stderr, "Failed to create the DRM");
+		delete input;
+		wl_display_destroy(display);
+		return -EFAULT;
+	}
+
 	printf("Running the wayland display on %s\n", socket);
 	wl_display_run(display);
 
+	delete drm;
 	delete input;
 	wl_display_destroy(display);
 	return 0;
