@@ -72,15 +72,26 @@ int DRM::selectMode(int idx)
 		return -EINVAL;
 	}
 
+	drmModeModeInfo mode = connector->modes[idx];
+	fprintf(stderr, "(%dx%d)\n", mode.hdisplay, mode.vdisplay);
+
+	return 0;
+}
+
+int DRM::selectConnector(int idx)
+{
+	if (idx < 0 || idx >= connectors.size()) {
+		fprintf(stderr, "Invalid connector index (%d < %zu)\n", idx, connectors.size());
+		return -EINVAL;
+	}
+
+	connector = connectors[idx];
+
 	if (encoder) {
 		drmModeFreeEncoder(encoder);
 		encoder = nullptr;
 	}
 
-	drmModeModeInfo mode = connector->modes[idx];
-	fprintf(stderr, "(%dx%d)\n", mode.hdisplay, mode.vdisplay);
-
-	encoder = nullptr;
 	for (int i = 0; i < resources->count_encoders; ++i) {
 		encoder = drmModeGetEncoder(fd, resources->encoders[i]);
 		if (encoder == nullptr) {
@@ -99,20 +110,10 @@ int DRM::selectMode(int idx)
 
 	if (!encoder) {
 		fprintf(stderr, "No matching encoder with connector\n");
+		connector = nullptr;
 		return -ENOENT;
 	}
 
-	return 0;
-}
-
-int DRM::selectConnector(int idx)
-{
-	if (idx < 0 || idx >= connectors.size()) {
-		fprintf(stderr, "Invalid connector index (%d < %zu)\n", idx, connectors.size());
-		return -EINVAL;
-	}
-
-	connector = connectors[idx];
 	return 0;
 }
 
