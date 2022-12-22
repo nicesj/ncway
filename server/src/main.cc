@@ -59,6 +59,11 @@ int main(int argc, char *argv[])
 		return -EFAULT;
 	}
 
+	printf("%zu connectors are found\n", drm->getConnectorCount());
+	drm->selectConnector(0);
+	printf("%d modes found\n", drm->getModeCount());
+	drm->selectMode(0);
+
 	printf("Running the wayland display on %s\n", socket);
 	wl_display_run(display);
 

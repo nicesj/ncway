@@ -1,5 +1,8 @@
 #pragma once
 #include "../subsystem.h"
+
+#include <vector>
+
 #include <xf86drmMode.h>
 
 namespace ncway {
@@ -15,10 +18,17 @@ public:
 	int handler(int fd, uint32_t mask);
 	int getFD(void);
 
+	size_t getConnectorCount(void);
+	int selectConnector(int idx);
+	int selectMode(int idx);
+	int getModeCount(void);
+
 private:
 	int fd;
 	drmModeRes *resources;
-	drmModeConnector *connector;
 	drmModeEncoder *encoder;
+	drmModeConnector *connector;
+
+	std::vector<drmModeConnector *> connectors;
 };
 }
