@@ -3,18 +3,24 @@
 #include <string>
 #include <libinput.h>
 #include <libudev.h>
+#include <unistd.h>
+#include <fcntl.h>
 
 namespace ncway {
 
 void Input::closeRestricted(int fd, void *data)
 {
 	printf("Close FD: %d\n", fd);
+	if (close(fd) < 0) {
+		fprintf(stderr, "Close: %d, %m\n", fd);
+	}
 }
 
 int Input::openRestricted(const char *path, int flags, void *data)
 {
 	printf("Open: %s (0x%X)\n", path, flags);
-	return 0;
+	int fd = open(path, flags);
+	return fd < 0 ? -errno : fd;
 }
 
 int Input::getFD(void)
