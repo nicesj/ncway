@@ -23,6 +23,9 @@ public:
 	int selectMode(int idx);
 	int getModeCount(void);
 
+	drmModeEncoder *getEncoder(void);
+	drmModeConnector *getConnector(void);
+
 private:
 	int fd;
 	drmModeRes *resources;

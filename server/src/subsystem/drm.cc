@@ -172,4 +172,14 @@ std::string DRM::name(void)
 	return "DRM";
 }
 
+drmModeEncoder *DRM::getEncoder(void)
+{
+	return encoder;
+}
+
+drmModeConnector *DRM::getConnector(void)
+{
+	return connector;
+}
+
 }
