@@ -1,5 +1,6 @@
 #pragma once
 #include "../subsystem.h"
+#include "drm.h"
 
 #include <string>
 #include <cstdint>
@@ -7,10 +8,10 @@
 namespace ncway {
 class KMS : public Subsystem {
 private:
-	KMS(void);
+	KMS(const DRM *drm);
 
 public:
-	static KMS *Create(void);
+	static KMS *Create(const DRM *drm);
 	virtual ~KMS(void);
 
 public:
@@ -20,5 +21,6 @@ public:
 
 private:
 	int fd;
+	const DRM *drm;
 };
 }

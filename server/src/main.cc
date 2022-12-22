@@ -65,7 +65,7 @@ int main(int argc, char *argv[])
 	printf("%d modes found\n", drm->getModeCount());
 	drm->selectMode(0);
 
-	ncway::KMS *kms = ncway::KMS::Create();
+	ncway::KMS *kms = ncway::KMS::Create(drm);
 	if (!kms) {
 		fprintf(stderr, "Failed to create the KMS");
 		delete drm;

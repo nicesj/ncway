@@ -1,11 +1,13 @@
 #include "kms.h"
+#include "drm.h"
 
 #include <string>
 #include <cstdint>
 
 namespace ncway {
-KMS::KMS(void)
+KMS::KMS(const DRM *_drm)
 : fd(-1)
+, drm(_drm)
 {
 }
 
@@ -28,9 +30,14 @@ std::string KMS::name(void)
 	return "kms";
 }
 
-KMS *KMS::Create(void)
+KMS *KMS::Create(const DRM *drm)
 {
-	KMS *instance = new KMS();
+	if (!drm) {
+		fprintf(stderr, "DRM object required\n");
+		return nullptr;
+	}
+
+	KMS *instance = new KMS(drm);
 	return instance;
 }
 
