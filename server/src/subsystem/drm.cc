@@ -50,7 +50,7 @@ int DRM::handler(int fd, uint32_t mask)
 	return 1;
 }
 
-int DRM::getModeCount(void)
+int DRM::getModeCount(void) const
 {
 	if (!connector) {
 		fprintf(stderr, "Connector must be selected first\n");
@@ -58,6 +58,11 @@ int DRM::getModeCount(void)
 	}
 
 	return connector->count_modes;
+}
+
+const drmModeModeInfo &DRM::getMode(void) const
+{
+	return modeInfo;
 }
 
 int DRM::selectMode(int idx)
@@ -72,8 +77,8 @@ int DRM::selectMode(int idx)
 		return -EINVAL;
 	}
 
-	drmModeModeInfo mode = connector->modes[idx];
-	fprintf(stderr, "(%dx%d)\n", mode.hdisplay, mode.vdisplay);
+	modeInfo = connector->modes[idx];
+	fprintf(stderr, "(%dx%d)\n", modeInfo.hdisplay, modeInfo.vdisplay);
 
 	return 0;
 }
@@ -117,7 +122,7 @@ int DRM::selectConnector(int idx)
 	return 0;
 }
 
-size_t DRM::getConnectorCount(void)
+size_t DRM::getConnectorCount(void) const
 {
 	return connectors.size();
 }

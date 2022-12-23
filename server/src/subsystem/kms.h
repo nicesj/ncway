@@ -22,5 +22,6 @@ public:
 private:
 	int fd;
 	const DRM *drm;
+	kms_driver *kms;
 };
 }

@@ -18,10 +18,11 @@ public:
 	int handler(int fd, uint32_t mask);
 	int getFD(void);
 
-	size_t getConnectorCount(void);
+	size_t getConnectorCount(void) const;
 	int selectConnector(int idx);
 	int selectMode(int idx);
-	int getModeCount(void);
+	int getModeCount(void) const;
+	const drmModeModeInfo &getMode(void) const;
 
 	drmModeEncoder *getEncoder(void);
 	drmModeConnector *getConnector(void);
@@ -31,6 +32,7 @@ private:
 	drmModeRes *resources;
 	drmModeEncoder *encoder;
 	drmModeConnector *connector;
+	drmModeModeInfo modeInfo;
 
 	std::vector<drmModeConnector *> connectors;
 };
