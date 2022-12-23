@@ -10,6 +10,7 @@ pkg_check_modules(pkgs REQUIRED
 	libinput
 	libudev
 	libdrm
+	gbm
 )
 
 foreach(CFLAG ${pkgs_CFLAGS})

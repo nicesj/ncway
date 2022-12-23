@@ -17,7 +17,7 @@ $ sudo apt install vulkan-validationlayers-dev spirv-tools
 ```bash
 $ sudo apt install libinput-dev
 $ sudo apt install libdrm-dev
-$ sudo apt install libkms-dev
+$ sudo apt install libgbm-dev
 ```
 
 # References
@@ -28,3 +28,4 @@ $ sudo apt install libkms-dev
  * [egl on DRM example](https://blogs.igalia.com/elima/2016/10/06/example-run-an-opengl-es-compute-shader-on-a-drm-render-node/)
  * [DRM and KMS](https://events.static.linuxfound.org/sites/events/files/lcjpcojp13_pinchart.pdf)
  * [KMS implementation](https://github.com/CPFL/drm/blob/master/libkms/api.c)
+ * [DRM example](https://github.com/dvdhrm/docs/blob/master/drm-howto/modeset.c)

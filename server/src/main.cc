@@ -3,7 +3,6 @@
 #include "subsystem.h"
 #include "subsystem/input.h"
 #include "subsystem/drm.h"
-#include "subsystem/kms.h"
 #include "event.h"
 
 #include <cstring>
@@ -65,19 +64,9 @@ int main(int argc, char *argv[])
 	printf("%d modes found\n", drm->getModeCount());
 	drm->selectMode(0);
 
-	ncway::KMS *kms = ncway::KMS::Create(drm);
-	if (!kms) {
-		fprintf(stderr, "Failed to create the KMS");
-		delete drm;
-		delete input;
-		wl_display_destroy(display);
-		return -EFAULT;
-	}
-
 	printf("Running the wayland display on %s\n", socket);
 	wl_display_run(display);
 
-	delete kms;
 	delete drm;
 	delete input;
 	wl_display_destroy(display);
