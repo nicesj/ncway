@@ -2,7 +2,7 @@
 
 ![Wayland Architecture](https://wayland.freedesktop.org/wayland-architecture.png)
 
-![DRI and Wayland](https://en.wikipedia.org/wiki/Direct_Rendering_Infrastructure#/media/File:Linux_graphics_drivers_DRI_Wayland.svg)
+![DRI and Wayland](https://upload.wikimedia.org/wikipedia/commons/b/ba/Linux_graphics_drivers_DRI_Wayland.svg)
 
 # Prerequisite
 
