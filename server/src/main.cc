@@ -3,12 +3,14 @@
 #include "subsystem.h"
 #include "subsystem/input.h"
 #include "subsystem/drm.h"
+#include "subsystem/gbm.h"
 #include "event.h"
 
 #include <cstring>
 #include <cstdlib>
 #include <cstdio>
 #include <cerrno>
+#include <drm_fourcc.h>
 
 #define DEFAULT_SEAT "seat0"
 
@@ -64,9 +66,12 @@ int main(int argc, char *argv[])
 	printf("%d modes found\n", drm->getModeCount());
 	drm->selectMode(0);
 
+	ncway::GBM *gbm = ncway::GBM::Create(drm, DRM_FORMAT_XRGB8888, DRM_FORMAT_MOD_LINEAR);
+
 	printf("Running the wayland display on %s\n", socket);
 	wl_display_run(display);
 
+	delete gbm;
 	delete drm;
 	delete input;
 	wl_display_destroy(display);

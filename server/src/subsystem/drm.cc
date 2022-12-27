@@ -43,7 +43,7 @@ DRM::~DRM(void)
 
 int DRM::getFD(void)
 {
-	return -1;
+	return fd;
 }
 
 int DRM::handler(int fd, uint32_t mask)
@@ -73,13 +73,36 @@ int DRM::selectMode(int idx)
 		return -EINVAL;
 	}
 
-	if (idx < 0 || idx >= connector->count_modes) {
+	if (idx < 0) {
+		printf("Select mode automatically\n");
+		// NOTE:
+		// Find a preferred mode
+		// or the highest resolution
+		int area = 0;
+		for (int i = 0; i < connector->count_modes; ++i) {
+			drmModeModeInfo *current_mode = &connector->modes[i];
+			if (current_mode->type & DRM_MODE_TYPE_PREFERRED) {
+				printf("Selected mode is %d\n", i);
+				modeInfo = *current_mode;
+				idx = i;
+				break;
+			}
+
+			int current_area = current_mode->hdisplay * current_mode->vdisplay;
+			if (current_area > area) {
+				modeInfo = *current_mode;
+				area = current_area;
+				idx = i;
+				printf("Selected mode is %d (%dx%d)\n", i, current_mode->hdisplay, current_mode->vdisplay);
+			}
+		}
+	} else if (idx >= connector->count_modes) {
 		fprintf(stderr, "Invalid modes(%d) must be in between %d and %d\n", idx, 0, connector->count_modes);
 		return -EINVAL;
 	}
 
 	modeInfo = connector->modes[idx];
-	fprintf(stderr, "(%dx%d)\n", modeInfo.hdisplay, modeInfo.vdisplay);
+	fprintf(stderr, "%s (%dx%d)\n", modeInfo.name, modeInfo.hdisplay, modeInfo.vdisplay);
 
 	return 0;
 }
