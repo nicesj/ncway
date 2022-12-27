@@ -5,6 +5,8 @@
 
 #include <xf86drmMode.h>
 
+#include <unistd.h>
+
 namespace ncway {
 class DRM : public Subsystem {
 private:
@@ -28,11 +30,17 @@ public:
 	drmModeConnector *getConnector(void);
 
 private:
+	uint32_t findCRTC(drmModeEncoder *encoder);
+	uint32_t findCRTC(drmModeConnector *connector);
+
+private:
 	int fd;
 	drmModeRes *resources;
 	drmModeEncoder *encoder;
 	drmModeConnector *connector;
 	drmModeModeInfo modeInfo;
+	uint32_t crtc_id;
+	uint32_t connector_id;
 
 	std::vector<drmModeConnector *> connectors;
 };

@@ -13,7 +13,7 @@ $ sudo apt install libvulkan-dev
 $ sudo apt install vulkan-validationlayers-dev spirv-tools
 ```
 
-## DRI
+## Direct Rendering Infrastructure
 ```bash
 $ sudo apt install libinput-dev
 $ sudo apt install libdrm-dev
@@ -29,3 +29,4 @@ $ sudo apt install libgbm-dev
  * [DRM and KMS](https://events.static.linuxfound.org/sites/events/files/lcjpcojp13_pinchart.pdf)
  * [KMS implementation](https://github.com/CPFL/drm/blob/master/libkms/api.c)
  * [DRM example](https://github.com/dvdhrm/docs/blob/master/drm-howto/modeset.c)
+ * [Linux DRM Developer's guide](https://landley.net/kdocs/htmldocs/drm.html#drmIntroduction)

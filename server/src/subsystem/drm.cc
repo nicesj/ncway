@@ -83,6 +83,55 @@ int DRM::selectMode(int idx)
 	return 0;
 }
 
+uint32_t DRM::findCRTC(drmModeConnector *connector)
+{
+	if (!connector) {
+		fprintf(stderr, "connector is not declared\n");
+		return 0;
+	}
+
+	for (int i = 0; i< connector->count_encoders; ++i) {
+		const uint32_t encoder_id = connector->encoders[i];
+		drmModeEncoder *_encoder = drmModeGetEncoder(fd, encoder_id);
+
+		if (!_encoder) {
+			continue;
+		}
+
+		const uint32_t crtc_id = findCRTC(_encoder);
+		if (crtc_id == 0) {
+			continue;
+		}
+
+		if (encoder != nullptr) {
+			drmModeFreeEncoder(encoder);
+		}
+
+		encoder = _encoder;
+		return crtc_id;
+	}
+
+	return 0;
+}
+
+uint32_t DRM::findCRTC(drmModeEncoder *encoder)
+{
+	if (!encoder) {
+		fprintf(stderr, "encoder is not declared\n");
+		return 0;
+	}
+
+	for (int i = 0; i < resources->count_crtcs; ++i) {
+		const uint32_t crtc_mask = 1 << i;
+		const uint32_t crtc_id = resources->crtcs[i];
+		if (encoder->possible_crtcs & crtc_mask) {
+			return crtc_id;
+		}
+	}
+
+	return 0;
+}
+
 int DRM::selectConnector(int idx)
 {
 	if (idx < 0 || idx >= connectors.size()) {
@@ -91,6 +140,7 @@ int DRM::selectConnector(int idx)
 	}
 
 	connector = connectors[idx];
+	connector_id = connector->connector_id;
 
 	if (encoder) {
 		drmModeFreeEncoder(encoder);
@@ -114,8 +164,19 @@ int DRM::selectConnector(int idx)
 	}
 
 	if (!encoder) {
+		fprintf(stderr, "Find Connector & Encoder in a different way\n");
+		crtc_id = findCRTC(connector);
+	} else {
+		crtc_id = encoder->crtc_id;
+	}
+
+	if (crtc_id == 0) {
 		fprintf(stderr, "No matching encoder with connector\n");
 		connector = nullptr;
+		if (encoder) {
+			drmModeFreeEncoder(encoder);
+			encoder = nullptr;
+		}
 		return -ENOENT;
 	}
 
