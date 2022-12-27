@@ -51,7 +51,7 @@ int main(int argc, char *argv[])
 		return -EFAULT;
 	}
 
-	ncway::DRM *drm = ncway::DRM::Create("/dev/dri/card0");
+	ncway::DRM *drm = ncway::DRM::Create("/dev/dri/card0", true, false);
 	if (!drm) {
 		fprintf(stderr, "Failed to create the DRM");
 		delete input;

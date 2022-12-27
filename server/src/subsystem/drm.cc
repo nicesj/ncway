@@ -8,6 +8,7 @@
 #include <cstring>
 #include <unistd.h>
 #include <fcntl.h>
+#include <xf86drm.h>
 #include <xf86drmMode.h>
 
 namespace ncway {
@@ -188,7 +189,7 @@ size_t DRM::getConnectorCount(void) const
 	return connectors.size();
 }
 
-DRM *DRM::Create(std::string nodePath)
+DRM *DRM::Create(std::string nodePath, bool isMaster, bool isAtomic)
 {
 	DRM *instance = new DRM();
 	if (!instance) {
@@ -200,6 +201,24 @@ DRM *DRM::Create(std::string nodePath)
 		fprintf(stderr, "open(%s) returns %s\n", nodePath.c_str(), strerror(errno));
 		delete instance;
 		return nullptr;
+	}
+
+	if (isMaster) {
+		int ret = drmSetMaster(instance->fd);
+		if (ret < 0) {
+			fprintf(stderr, "Failed to be a master\n");
+			delete instance;
+			return nullptr;
+		}
+	}
+
+	if (isAtomic) {
+		int ret = drmSetClientCap(instance->fd, DRM_CLIENT_CAP_ATOMIC, 1);
+		if (ret < 0) {
+			fprintf(stderr, "Failed to set atomic flag\n");
+			delete instance;
+			return nullptr;
+		}
 	}
 
 	instance->resources = drmModeGetResources(instance->fd);

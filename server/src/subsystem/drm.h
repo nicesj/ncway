@@ -12,7 +12,7 @@ class DRM : public Subsystem {
 private:
 	DRM(void);
 public:
-	static DRM *Create(std::string nodePath);
+	static DRM *Create(std::string nodePath, bool isMaster, bool isAtomic);
 	virtual ~DRM(void);
 
 public:
