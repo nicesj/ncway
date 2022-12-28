@@ -46,8 +46,19 @@ int DRM::getFD(void)
 	return fd;
 }
 
+void DRM::page_flip_handler(int fd, unsigned int frame, unsigned int sec, unsigned int usec, void *data)
+{
+	printf("Frame: %u (%u sec %u usec)\n", frame, sec, usec);
+}
+
 int DRM::handler(int fd, uint32_t mask)
 {
+	drmEventContext evctx = {
+		.version = 2,
+		.page_flip_handler = DRM::page_flip_handler,
+	};
+
+	drmHandleEvent(fd, &evctx);
 	return 1;
 }
 

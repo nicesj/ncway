@@ -29,6 +29,8 @@ public:
 	drmModeEncoder *getEncoder(void);
 	drmModeConnector *getConnector(void);
 
+	static void page_flip_handler(int fd, unsigned int frame, unsigned int sec, unsigned int usec, void *data);
+
 private:
 	uint32_t findCRTC(drmModeEncoder *encoder);
 	uint32_t findCRTC(drmModeConnector *connector);
