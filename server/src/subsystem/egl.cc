@@ -16,7 +16,7 @@ EGL::~EGL(void)
 
 std::string EGL::name(void)
 {
-	return "EGL";
+	return "egl";
 }
 
 int EGL::getFD(void)
@@ -256,6 +256,27 @@ EGL *EGL::Create(GBM *gbm, int samples)
 	get_proc_gl(GL_AMD_performance_monitor, PFNGLGETPERFMONITORCOUNTERDATAAMDPROC, glGetPerfMonitorCounterDataAMD);
 
 	return egl;
+}
+
+int EGL::startRender(int (*render)(void))
+{
+	eglSwapBuffers(display, surface);
+	gbm_bo *bo = gbm->getBufferObject();
+	Renderer::Description *desc = gbm->getBufferDescription(bo);
+	drm->addFramebuffer(desc);
+	int fb_id = drm->getFBID(desc);
+	drm->setCrtcMode(fb_id, 0, 0);
+
+	eglSwapBuffers(display, surface);
+	gbm_bo *next_bo = gbm->getBufferObject();
+	Renderer::Description *next_desc = gbm->getBufferObject(next_bo);
+	drm->addFramebuffer(next_desc);
+	int next_fb_id = drm->getFBID(next_desc);
+	drm->pageFlip(next_fb_id, nullptr);
+	gbm->releaseBufferObject(bo);
+	bo = next_bo;
+
+	return 0;
 }
 
 }

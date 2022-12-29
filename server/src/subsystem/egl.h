@@ -32,6 +32,9 @@ public:
 	EGLContext& getContext();
 	EGLSurface& getSurface();
 
+public:
+	int startRender(int (*render)(void));
+
 private:
 	bool chooseConfig(EGLDisplay display, const EGLint *attrib, EGLint visual_id, EGLConfig *config_out);
 	bool hasExt(const char *extension_list, const char *et);

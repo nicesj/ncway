@@ -28,6 +28,8 @@ public:
 	uint32_t getFormat(void) const;
 	std::string name(void);
 	Renderer::bufferDescription *getBufferDescription(gbm_bo *bo, bool applyModifiers);
+	gbm_bo *getBufferObject(void);
+	void releaseBufferObject(gbm_bo *bo);
 
 private:
 	gbm_device *dev;

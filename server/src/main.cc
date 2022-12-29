@@ -77,7 +77,6 @@ int main(int argc, char *argv[])
 	drm->selectMode(0);
 
 	ncway::GBM *gbm = ncway::GBM::Create(drm, DRM_FORMAT_XRGB8888, DRM_FORMAT_MOD_LINEAR);
-
 	ncway::EGL *egl = ncway::EGL::Create(gbm, 1);
 
 	printf("Running the wayland display on %s\n", socket);

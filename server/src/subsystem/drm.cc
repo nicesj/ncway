@@ -341,4 +341,24 @@ int DRM::addFramebuffer(Renderer::bufferDescription *desc)
 	return 0;
 }
 
+int DRM::getFBID(Renderer::Description *desc)
+{
+	if (!desc->user_data) {
+		return -1;
+	}
+
+	framebufferDescription *fbDesc = static_cast<framebufferDescription *>(desc->user_data);
+	return fbDesc->fb_id;
+}
+
+int DRM::setCrtcMode(int fb_id, int x, int y)
+{
+	return drmModeSetCrtc(fd, crtc_id, fb_id, x, y, connector_id, 1, modeInfo);
+}
+
+int DRM::pageFlip(int fb_id, void *data)
+{
+	return drmModePageFlip(fd, crtc_id, fb_id, DRM_MODE_PAGE_FLIP_EVENT, data);
+}
+
 }

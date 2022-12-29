@@ -36,6 +36,8 @@ public:
 	drmModeConnector *getConnector(void);
 
 	int addFramebuffer(Renderer::bufferDescription *desc);
+	int setCrtcMode(int fb_id, int x, int y);
+	int pageFlip(int fb_id, void *data);
 
 private:
 	uint32_t findCRTC(drmModeEncoder *encoder);

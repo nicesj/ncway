@@ -187,4 +187,14 @@ Renderer::bufferDescription *getBufferDescription(gbm_bo *bo, bool applyModifier
 	return desc;
 }
 
+gbm_bo *GBM::getBufferObject(void)
+{
+	return gbm_surface_lock_front_buffer(surface);
+}
+
+void GBM::releaseBufferObject(gbm_bo *bo)
+{
+	gbm_surface_release_buffer(surface, bo);
+}
+
 }
