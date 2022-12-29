@@ -301,4 +301,44 @@ drmModeConnector *DRM::getConnector(void)
 	return connector;
 }
 
+int DRM::addFramebuffer(Renderer::bufferDescription *desc)
+{
+	uint32_t fb_id;
+	int ret = drmModeAddFB2WithModifiers(fd,
+		       desc->width, desc->height, desc->format,
+		       desc->handles, desc->strides, desc->offsets, desc->modifiers,
+		       &fb_id, desc->flags);
+	if (ret) {
+		fprintf(stderr, "Failed to create FB: %s\n", strerror(errno));
+		ret = drmModeAddFB2(fd, desc->width, desc->height, desc->format, desc->handles, desc->strides, desc->offsets, &fb_id, 0);
+		if (ret) {
+			fprintf(stderr, "Failed to create FB: %s\n", strerror(errno));
+		}
+	}
+
+	if (ret) {
+		return -EFAULT;
+	}
+
+	framebufferDescription *fbDesc = new framebufferDescription();
+	if (!fbDesc) {
+		fprintf(stderr, "Failed to allocate memory\n");
+		drmModeRmFB(fd, fb_id);
+		return -ENOMEM;
+	}
+	fbDesc->fb_id = fb_id;
+	fbDesc->fd = fd;
+	desc->user_data = fbDesc;
+	desc->user_data_destructor = [](Renderer::bufferDescription *desc) {
+		framebufferDescription *fbDesc = static_cast<framebufferDescription *>(desc->user_data);
+		drmModeRmFB(fbDesc->fd, fbDesc->fb_id);
+		delete fbDesc;
+		desc->user_data = nullptr;
+		desc->user_data_destructor = nullptr;
+		return;
+	};
+
+	return 0;
+}
+
 }

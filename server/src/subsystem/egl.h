@@ -1,5 +1,6 @@
 #pragma once
 
+#include "./renderer.h"
 #include "./gbm.h"
 
 #ifndef GL_ES_VERSION_2_0
@@ -14,12 +15,15 @@
 
 namespace ncway {
 
-class EGL {
+class EGL : public Renderer {
 private:
 	EGL(void);
 
 public:
 	virtual ~EGL(void);
+	std::string name(void);
+	int getFD(void);
+	int handler(int fd, uint32_t mask);
 
 public:
 	static EGL *Create(GBM *gbm, int samples);

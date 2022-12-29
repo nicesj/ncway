@@ -1,5 +1,5 @@
 #pragma once
-#include "../subsystem.h"
+#include "renderer.h"
 
 #include <vector>
 
@@ -8,12 +8,18 @@
 #include <unistd.h>
 
 namespace ncway {
-class DRM : public Subsystem {
+class DRM : public Renderer {
 private:
 	DRM(void);
 public:
 	static DRM *Create(std::string nodePath, bool isMaster, bool isAtomic);
 	virtual ~DRM(void);
+
+public:
+	struct framebufferDescription {
+		uint32_t fb_id;
+		int fd;
+	};
 
 public:
 	std::string name(void);
@@ -29,11 +35,12 @@ public:
 	drmModeEncoder *getEncoder(void);
 	drmModeConnector *getConnector(void);
 
-	static void page_flip_handler(int fd, unsigned int frame, unsigned int sec, unsigned int usec, void *data);
+	int addFramebuffer(Renderer::bufferDescription *desc);
 
 private:
 	uint32_t findCRTC(drmModeEncoder *encoder);
 	uint32_t findCRTC(drmModeConnector *connector);
+	static void page_flip_handler(int fd, unsigned int frame, unsigned int sec, unsigned int usec, void *data);
 
 private:
 	int fd;

@@ -1,8 +1,5 @@
 #pragma once
-#include "subsystem.h"
-#include "subsystem/egl.h"
-#include "subsystem/gbm.h"
-#include "subsystem/drm.h"
+#include "../subsystem.h"
 
 #include <string>
 #include <unistd.h>
@@ -10,20 +7,22 @@
 namespace ncway {
 class Renderer : public Subsystem {
 public:
-	Renderer *Create(DRM *drm, GBM *gbm, EGL *egl);
+	virtual ~Renderer(void) = default;
+	Renderer(void) = default;
 
 public:
-	virtual ~Renderer(void);
-	std::string name(void);
-	int getFD(void);
-	int handler(int fd, uint32_t mask);
+	struct bufferDescription {
+		uint32_t width;
+		uint32_t height;
+		uint32_t format;
+		uint32_t flags;
+		uint32_t strides[4];
+		uint32_t handles[4];
+		uint32_t offsets[4];
+		uint64_t modifiers[4];
 
-private:
-	Renderer(DRM *drm, GBM *gbm, EGL *egl);
-
-private:
-	DRM *drm;
-	GBM *gbm;
-	EGL *egl;
-}
+		void *user_data;
+		void (*user_data_destructor)(bufferDescription *desc);
+	};
+};
 }

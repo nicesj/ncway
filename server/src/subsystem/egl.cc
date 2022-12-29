@@ -14,6 +14,21 @@ EGL::~EGL(void)
 {
 }
 
+std::string EGL::name(void)
+{
+	return "EGL";
+}
+
+int EGL::getFD(void)
+{
+	return -1;
+}
+
+int EGL::handler(int fd, uint32_t mask)
+{
+	return 0;
+}
+
 EGLDisplay& EGL::getDisplay()
 {
 	return display;

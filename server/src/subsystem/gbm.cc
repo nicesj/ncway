@@ -3,10 +3,24 @@
 
 #include <string>
 #include <cstdio>
+#include <cstring>
 
 #include <drm_fourcc.h>
 #include <unistd.h>
 #include <gbm.h>
+#include <inttypes.h>
+
+__attribute__((weak)) uint64_t
+gbm_bo_get_modifier(struct gbm_bo *bo);
+
+__attribute__((weak)) int
+gbm_bo_get_plane_count(struct gbm_bo *bo);
+
+__attribute__((weak)) uint32_t
+gbm_bo_get_stride_for_plane(struct gbm_bo *bo, int plane);
+
+__attribute__((weak)) uint32_t
+gbm_bo_get_offset(struct gbm_bo *bo, int plane);
 
 namespace ncway {
 
@@ -118,6 +132,59 @@ int GBM::getFD(void)
 int GBM::handler(int fd, uint32_t mask)
 {
 	return 1;
+}
+
+Renderer::bufferDescription *getBufferDescription(gbm_bo *bo, bool applyModifiers)
+{
+	Renderer::bufferDescription *desc = static_cast<Renderer::bufferDescription *>(gbm_bo_get_user_data(bo));
+	if (desc != nullptr) {
+		return desc;
+	}
+
+	desc = new Renderer::bufferDescription();
+	if (desc == nullptr) {
+		fprintf(stderr, "Failed to allocate memory\n");
+		return nullptr;
+	}
+
+	desc->width = gbm_bo_get_width(bo);
+	desc->height = gbm_bo_get_height(bo);
+	desc->format = gbm_bo_get_format(bo);
+	desc->user_data = nullptr;
+	desc->user_data_destructor = nullptr;
+
+	if (applyModifiers && gbm_bo_get_modifier && gbm_bo_get_plane_count && gbm_bo_get_stride_for_plane && gbm_bo_get_offset) {
+		desc->modifiers[0] = gbm_bo_get_modifier(bo);
+		const int num_planes = gbm_bo_get_plane_count(bo);
+		for (int i = 0; i < num_planes; ++i) {
+			desc->strides[i] = gbm_bo_get_stride_for_plane(bo, i);
+			desc->handles[i] = gbm_bo_get_handle(bo).u32;
+			desc->offsets[i] = gbm_bo_get_offset(bo, i);
+			desc->modifiers[i] = desc->modifiers[0];
+		}
+
+		if (desc->modifiers[0]) {
+			desc->flags = DRM_MODE_FB_MODIFIERS;
+			printf("Using modifier %" PRIu64 "\n", desc->modifiers[0]);
+		}
+	} else {
+		uint32_t tmp[4] = { 0, };
+		tmp[0] = gbm_bo_get_handle(bo).u32;
+		memcpy(desc->handles, tmp, 16);
+		tmp[0] = gbm_bo_get_stride(bo);
+		memcpy(desc->strides, tmp, 16);
+		memset(desc->offsets, 0, 16);
+	}
+
+	gbm_bo_set_user_data(bo, desc, [](gbm_bo *bo, void *data) {
+		Renderer::bufferDescription *desc = static_cast<Renderer::bufferDescription *>(data);
+		if (desc->user_data_destructor) {
+			desc->user_data_destructor(desc);
+		}
+		delete desc;
+	});
+
+	return desc;
 }
 
 }
