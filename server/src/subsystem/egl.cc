@@ -284,4 +284,9 @@ int EGL::startRender(int (*render)(void))
 	return 0;
 }
 
+GBM *EGL::getGBM(void)
+{
+	return gbm;
+}
+
 }

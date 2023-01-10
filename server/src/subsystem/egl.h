@@ -34,6 +34,7 @@ public:
 
 public:
 	int startRender(int (*render)(void));
+	GBM *getGBM(void);
 
 private:
 	bool chooseConfig(EGLDisplay display, const EGLint *attrib, EGLint visual_id, EGLConfig *config_out);
