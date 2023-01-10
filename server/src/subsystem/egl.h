@@ -1,7 +1,7 @@
 #pragma once
 
-#include "./renderer.h"
-#include "./gbm.h"
+#include "../subsystem.h"
+#include "gbm.h"
 
 #ifndef GL_ES_VERSION_2_0
 #include <GLES2/gl2.h>
@@ -15,7 +15,7 @@
 
 namespace ncway {
 
-class EGL : public Renderer {
+class EGL : public Subsystem {
 private:
 	EGL(void);
 
@@ -45,6 +45,8 @@ private:
 	EGLConfig config;
 	EGLContext context;
 	EGLSurface surface;
+
+	GBM *gbm;
 
 	PFNEGLGETPLATFORMDISPLAYEXTPROC eglGetPlatformDisplayEXT;
 	PFNEGLCREATEIMAGEKHRPROC eglCreateImageKHR;

@@ -301,7 +301,7 @@ drmModeConnector *DRM::getConnector(void)
 	return connector;
 }
 
-int DRM::addFramebuffer(Renderer::bufferDescription *desc)
+int DRM::addFramebuffer(BufferDescriptor *desc)
 {
 	uint32_t fb_id;
 	int ret = drmModeAddFB2WithModifiers(fd,
@@ -320,7 +320,7 @@ int DRM::addFramebuffer(Renderer::bufferDescription *desc)
 		return -EFAULT;
 	}
 
-	framebufferDescription *fbDesc = new framebufferDescription();
+	FramebufferDescriptor *fbDesc = new FramebufferDescriptor();
 	if (!fbDesc) {
 		fprintf(stderr, "Failed to allocate memory\n");
 		drmModeRmFB(fd, fb_id);
@@ -329,8 +329,8 @@ int DRM::addFramebuffer(Renderer::bufferDescription *desc)
 	fbDesc->fb_id = fb_id;
 	fbDesc->fd = fd;
 	desc->user_data = fbDesc;
-	desc->user_data_destructor = [](Renderer::bufferDescription *desc) {
-		framebufferDescription *fbDesc = static_cast<framebufferDescription *>(desc->user_data);
+	desc->user_data_destructor = [](BufferDescriptor *desc) {
+		FramebufferDescriptor *fbDesc = static_cast<FramebufferDescriptor *>(desc->user_data);
 		drmModeRmFB(fbDesc->fd, fbDesc->fb_id);
 		delete fbDesc;
 		desc->user_data = nullptr;
@@ -341,19 +341,19 @@ int DRM::addFramebuffer(Renderer::bufferDescription *desc)
 	return 0;
 }
 
-int DRM::getFBID(Renderer::Description *desc)
+int DRM::getFBID(BufferDescriptor *desc)
 {
 	if (!desc->user_data) {
 		return -1;
 	}
 
-	framebufferDescription *fbDesc = static_cast<framebufferDescription *>(desc->user_data);
+	FramebufferDescriptor *fbDesc = static_cast<FramebufferDescriptor *>(desc->user_data);
 	return fbDesc->fb_id;
 }
 
 int DRM::setCrtcMode(int fb_id, int x, int y)
 {
-	return drmModeSetCrtc(fd, crtc_id, fb_id, x, y, connector_id, 1, modeInfo);
+	return drmModeSetCrtc(fd, crtc_id, fb_id, x, y, &connector_id, 1, &modeInfo);
 }
 
 int DRM::pageFlip(int fb_id, void *data)

@@ -1,0 +1,12 @@
+set tabstop=4
+set softtabstop=4
+set shiftwidth=4
+set expandtab
+set smartindent
+set nobackup
+set showmatch
+set fdm=syntax
+set enc=utf-8
+set fileencoding=utf-8
+set exrc
+set secure

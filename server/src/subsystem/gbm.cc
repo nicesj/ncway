@@ -48,6 +48,8 @@ GBM *GBM::Create(DRM *drm, uint32_t format, uint64_t modifier)
 		return nullptr;
 	}
 
+	instance->drm = drm;
+
 	instance->dev = gbm_create_device(drm->getFD());
 	if (instance->dev == nullptr) {
 		fprintf(stderr, "Failed to create the GBM Device (%d)\n", drm->getFD());
@@ -134,14 +136,14 @@ int GBM::handler(int fd, uint32_t mask)
 	return 1;
 }
 
-Renderer::bufferDescription *getBufferDescription(gbm_bo *bo, bool applyModifiers)
+BufferDescriptor *GBM::getBufferDescriptor(gbm_bo *bo, bool applyModifiers)
 {
-	Renderer::bufferDescription *desc = static_cast<Renderer::bufferDescription *>(gbm_bo_get_user_data(bo));
+	BufferDescriptor *desc = static_cast<BufferDescriptor *>(gbm_bo_get_user_data(bo));
 	if (desc != nullptr) {
 		return desc;
 	}
 
-	desc = new Renderer::bufferDescription();
+	desc = new BufferDescriptor();
 	if (desc == nullptr) {
 		fprintf(stderr, "Failed to allocate memory\n");
 		return nullptr;
@@ -177,7 +179,7 @@ Renderer::bufferDescription *getBufferDescription(gbm_bo *bo, bool applyModifier
 	}
 
 	gbm_bo_set_user_data(bo, desc, [](gbm_bo *bo, void *data) {
-		Renderer::bufferDescription *desc = static_cast<Renderer::bufferDescription *>(data);
+		BufferDescriptor *desc = static_cast<BufferDescriptor *>(data);
 		if (desc->user_data_destructor) {
 			desc->user_data_destructor(desc);
 		}
@@ -195,6 +197,11 @@ gbm_bo *GBM::getBufferObject(void)
 void GBM::releaseBufferObject(gbm_bo *bo)
 {
 	gbm_surface_release_buffer(surface, bo);
+}
+
+DRM *GBM::getDRM(void)
+{
+	return drm;
 }
 
 }

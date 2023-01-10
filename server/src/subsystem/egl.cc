@@ -1,4 +1,7 @@
 #include "egl.h"
+#include "gbm.h"
+#include "drm.h"
+#include "../buffer_descriptor.h"
 
 #include <cstdlib>
 #include <cerrno>
@@ -137,6 +140,8 @@ EGL *EGL::Create(GBM *gbm, int samples)
 		return nullptr;
 	}
 
+	egl->gbm = gbm;
+
 	static const EGLint context_attribs[] = {
 		EGL_CONTEXT_CLIENT_VERSION, 2,
 		EGL_NONE
@@ -262,17 +267,17 @@ int EGL::startRender(int (*render)(void))
 {
 	eglSwapBuffers(display, surface);
 	gbm_bo *bo = gbm->getBufferObject();
-	Renderer::Description *desc = gbm->getBufferDescription(bo);
-	drm->addFramebuffer(desc);
-	int fb_id = drm->getFBID(desc);
-	drm->setCrtcMode(fb_id, 0, 0);
+	BufferDescriptor *desc = gbm->getBufferDescriptor(bo, false);
+	gbm->getDRM()->addFramebuffer(desc);
+	int fb_id = gbm->getDRM()->getFBID(desc);
+	gbm->getDRM()->setCrtcMode(fb_id, 0, 0);
 
 	eglSwapBuffers(display, surface);
 	gbm_bo *next_bo = gbm->getBufferObject();
-	Renderer::Description *next_desc = gbm->getBufferObject(next_bo);
-	drm->addFramebuffer(next_desc);
-	int next_fb_id = drm->getFBID(next_desc);
-	drm->pageFlip(next_fb_id, nullptr);
+	BufferDescriptor *next_desc = gbm->getBufferDescriptor(next_bo, false);
+	gbm->getDRM()->addFramebuffer(next_desc);
+	int next_fb_id = gbm->getDRM()->getFBID(next_desc);
+	gbm->getDRM()->pageFlip(next_fb_id, nullptr);
 	gbm->releaseBufferObject(bo);
 	bo = next_bo;
 

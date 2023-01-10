@@ -1,5 +1,6 @@
 #pragma once
-#include "renderer.h"
+#include "../subsystem.h"
+#include "../buffer_descriptor.h"
 
 #include <vector>
 
@@ -8,18 +9,12 @@
 #include <unistd.h>
 
 namespace ncway {
-class DRM : public Renderer {
+class DRM : public Subsystem {
 private:
 	DRM(void);
 public:
 	static DRM *Create(std::string nodePath, bool isMaster, bool isAtomic);
 	virtual ~DRM(void);
-
-public:
-	struct framebufferDescription {
-		uint32_t fb_id;
-		int fd;
-	};
 
 public:
 	std::string name(void);
@@ -35,9 +30,11 @@ public:
 	drmModeEncoder *getEncoder(void);
 	drmModeConnector *getConnector(void);
 
-	int addFramebuffer(Renderer::bufferDescription *desc);
+	int addFramebuffer(BufferDescriptor *desc);
 	int setCrtcMode(int fb_id, int x, int y);
 	int pageFlip(int fb_id, void *data);
+
+	int getFBID(BufferDescriptor *desc);
 
 private:
 	uint32_t findCRTC(drmModeEncoder *encoder);

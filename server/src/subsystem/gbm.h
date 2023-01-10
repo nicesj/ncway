@@ -1,14 +1,15 @@
 #pragma once
 
-#include "./renderer.h"
-#include "./drm.h"
+#include "../subsystem.h"
+#include "drm.h"
+#include "../buffer_descriptor.h"
 
 #include <unistd.h>
 #include <gbm.h>
 
 namespace ncway {
 
-class GBM : public Renderer {
+class GBM : public Subsystem {
 private:
 	GBM(void);
 
@@ -27,11 +28,13 @@ public:
 	int getHeight(void) const;
 	uint32_t getFormat(void) const;
 	std::string name(void);
-	Renderer::bufferDescription *getBufferDescription(gbm_bo *bo, bool applyModifiers);
+	BufferDescriptor *getBufferDescriptor(gbm_bo *bo, bool applyModifiers);
 	gbm_bo *getBufferObject(void);
 	void releaseBufferObject(gbm_bo *bo);
+	DRM *getDRM(void);
 
 private:
+	DRM *drm;
 	gbm_device *dev;
 	gbm_surface *surface;
 	uint32_t format;
