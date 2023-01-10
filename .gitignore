@@ -36,3 +36,5 @@ build
 *.swp
 .bash_history
 .viminfo
+.gitconfig
+.ssh
