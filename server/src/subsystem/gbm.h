@@ -21,13 +21,17 @@ public:
 	int handler(int fd, uint32_t mask);
 
 public:
+	std::string name(void);
+	std::string version(void);
+	bool isCompatible(std::string ver);
+
+public:
 	static GBM *Create(DRM *drm, uint32_t format, uint64_t modifier);
 	gbm_device *getDevice(void) const;
 	gbm_surface *getSurface(void) const;
 	int getWidth(void) const;
 	int getHeight(void) const;
 	uint32_t getFormat(void) const;
-	std::string name(void);
 	BufferDescriptor *getBufferDescriptor(gbm_bo *bo, bool applyModifiers);
 	gbm_bo *getBufferObject(void);
 	void releaseBufferObject(gbm_bo *bo);

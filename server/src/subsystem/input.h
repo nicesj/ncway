@@ -16,6 +16,10 @@ public:
 
 public:
 	std::string name(void);
+	std::string version(void);
+	bool isCompatible(std::string ver);
+
+public:
 	int handler(int fd, uint32_t mask);
 	int getFD(void);
 

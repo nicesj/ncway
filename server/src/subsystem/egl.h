@@ -21,9 +21,13 @@ private:
 
 public:
 	virtual ~EGL(void);
-	std::string name(void);
 	int getFD(void);
 	int handler(int fd, uint32_t mask);
+
+public:
+	std::string name(void);
+	std::string version(void);
+	bool isCompatible(std::string ver);
 
 public:
 	static EGL *Create(GBM *gbm, int samples);

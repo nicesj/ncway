@@ -8,5 +8,8 @@ public:
 	Renderer(void) = default;
 
 public:
+	std::string name(void);
+	std::string version(void);
+	bool isCompatible(std::string ver);
 };
 }

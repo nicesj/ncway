@@ -104,4 +104,14 @@ std::string Input::name(void)
 	return "input";
 }
 
+std::string Input::version(void)
+{
+	return "0.1";
+}
+
+bool Input::isCompatible(std::string ver)
+{
+	return true;
+}
+
 }

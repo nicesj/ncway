@@ -9,5 +9,7 @@ public:
 	virtual ~Subsystem(void);
 
 	virtual std::string name(void) = 0;
+	virtual std::string version(void) = 0;
+	virtual bool isCompatible(std::string ver) = 0;
 };
 }

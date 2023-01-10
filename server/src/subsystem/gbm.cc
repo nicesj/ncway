@@ -126,6 +126,16 @@ std::string GBM::name(void)
 	return "gbm";
 }
 
+std::string GBM::version(void)
+{
+	return "0.1";
+}
+
+bool GBM::isCompatible(std::string ver)
+{
+	return true;
+}
+
 int GBM::getFD(void)
 {
 	return -1;

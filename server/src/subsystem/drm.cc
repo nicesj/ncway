@@ -291,6 +291,16 @@ std::string DRM::name(void)
 	return "DRM";
 }
 
+std::string DRM::version(void)
+{
+	return "0.1";
+}
+
+bool DRM::isCompatible(std::string ver)
+{
+	return true;
+}
+
 drmModeEncoder *DRM::getEncoder(void)
 {
 	return encoder;

@@ -22,6 +22,16 @@ std::string EGL::name(void)
 	return "egl";
 }
 
+std::string EGL::version(void)
+{
+	return "0.1";
+}
+
+bool EGL::isCompatible(std::string ver)
+{
+	return true;
+}
+
 int EGL::getFD(void)
 {
 	return -1;
