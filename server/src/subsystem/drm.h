@@ -4,6 +4,7 @@
 
 #include <vector>
 #include <memory>
+#include <functional>
 
 #include <wayland-server.h>
 #include <xf86drmMode.h>
@@ -14,6 +15,13 @@ namespace ncway {
 class DRM : public Subsystem {
 private:
 	DRM(void);
+
+public:
+	struct EventData {
+		std::function<void(void)> renderer;
+		void *bo;
+	};
+
 public:
 	static std::shared_ptr<DRM> create(std::shared_ptr<wl_display> display, std::string nodePath, bool isMaster, bool isAtomic);
 	virtual ~DRM(void);
@@ -49,6 +57,7 @@ private:
 	uint32_t findCRTC(drmModeEncoder *encoder);
 	uint32_t findCRTC(drmModeConnector *connector);
 	static void page_flip_handler(int fd, unsigned int frame, unsigned int sec, unsigned int usec, void *data);
+	static void vblank_handler(int fd, unsigned int sequence, unsigned int sec, unsigned int usec, void *data);
 
 private:
 	int fd;

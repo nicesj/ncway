@@ -43,7 +43,7 @@ public:
 	EGLSurface& getEGLSurface(void);
 
 public:
-	int startRender(std::function<int(void)> renderer);
+	int startRender(std::function<void(void)> renderer);
 	std::shared_ptr<GBM> getGBM(void);
 	std::shared_ptr<wl_display> getDisplay(void);
 

@@ -280,7 +280,7 @@ std::shared_ptr<EGL> EGL::create(std::shared_ptr<GBM> gbm, int samples)
 	return egl;
 }
 
-int EGL::startRender(std::function<int(void)> renderer)
+int EGL::startRender(std::function<void(void)> renderer)
 {
 	eglSwapBuffers(display, surface);
 	gbm_bo *bo = gbm->getBufferObject();
@@ -294,9 +294,27 @@ int EGL::startRender(std::function<int(void)> renderer)
 	BufferDescriptor *next_desc = gbm->getBufferDescriptor(next_bo, false);
 	gbm->getDRM()->addFramebuffer(next_desc);
 	int next_fb_id = gbm->getDRM()->getFBID(next_desc);
-	gbm->getDRM()->pageFlip(next_fb_id, nullptr);
+	DRM::EventData *evtData = new DRM::EventData();
+	evtData->bo = next_bo;
+	evtData->renderer = [&, renderer, evtData](void) -> void {
+		printf("Render!\n");
+		gbm_bo *bo = static_cast<gbm_bo *>(evtData->bo);
+		if (renderer) {
+			renderer();
+		}
+		eglSwapBuffers(display, surface);
+
+		gbm_bo *next_bo = gbm->getBufferObject();
+		BufferDescriptor *next_desc = gbm->getBufferDescriptor(next_bo, false);
+		int next_fb_id = gbm->getDRM()->getFBID(next_desc);
+		evtData->bo = static_cast<void *>(next_bo);
+
+		gbm->getDRM()->pageFlip(next_fb_id, evtData);
+		gbm->releaseBufferObject(bo);
+		return;
+	};
+	gbm->getDRM()->pageFlip(next_fb_id, evtData);
 	gbm->releaseBufferObject(bo);
-	bo = next_bo;
 
 	return 0;
 }
