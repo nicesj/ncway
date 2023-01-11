@@ -4,6 +4,7 @@
 #include <string>
 #include <cstdio>
 #include <cstring>
+#include <memory>
 
 #include <drm_fourcc.h>
 #include <unistd.h>
@@ -40,9 +41,9 @@ GBM::~GBM(void)
 	}
 }
 
-GBM *GBM::Create(DRM *drm, uint32_t format, uint64_t modifier)
+std::shared_ptr<GBM> GBM::Create(std::shared_ptr<DRM> drm, uint32_t format, uint64_t modifier)
 {
-	GBM *instance = new GBM();
+	std::shared_ptr<GBM> instance = std::shared_ptr<GBM>(new GBM());
 	if (instance == nullptr) {
 		fprintf(stderr, "Failed to allocate memory for the GBM instance\n");
 		return nullptr;
@@ -53,7 +54,6 @@ GBM *GBM::Create(DRM *drm, uint32_t format, uint64_t modifier)
 	instance->dev = gbm_create_device(drm->getFD());
 	if (instance->dev == nullptr) {
 		fprintf(stderr, "Failed to create the GBM Device (%d)\n", drm->getFD());
-		delete instance;
 		return nullptr;
 	}
 	instance->format = format;
@@ -74,7 +74,6 @@ GBM *GBM::Create(DRM *drm, uint32_t format, uint64_t modifier)
 	if (instance->surface == nullptr) {
 		if (modifier != DRM_FORMAT_MOD_LINEAR) {
 			fprintf(stderr, "Modifiers requested but it is not supported\n");
-			delete instance;
 			return nullptr;
 		}
 
@@ -209,7 +208,7 @@ void GBM::releaseBufferObject(gbm_bo *bo)
 	gbm_surface_release_buffer(surface, bo);
 }
 
-DRM *GBM::getDRM(void)
+std::shared_ptr<DRM> GBM::getDRM(void)
 {
 	return drm;
 }

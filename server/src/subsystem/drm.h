@@ -3,6 +3,7 @@
 #include "../buffer_descriptor.h"
 
 #include <vector>
+#include <memory>
 
 #include <xf86drmMode.h>
 
@@ -13,17 +14,17 @@ class DRM : public Subsystem {
 private:
 	DRM(void);
 public:
-	static DRM *Create(std::string nodePath, bool isMaster, bool isAtomic);
+	static std::shared_ptr<DRM> Create(std::string nodePath, bool isMaster, bool isAtomic);
 	virtual ~DRM(void);
 
 public:
-	std::string name(void);
-	std::string version(void);
-	bool isCompatible(std::string ver);
+	std::string name(void) override;
+	std::string version(void) override;
+	bool isCompatible(std::string ver) override;
 
 public:
-	int handler(int fd, uint32_t mask);
-	int getFD(void);
+	int handler(int fd, uint32_t mask) override;
+	int getFD(void) override;
 
 	size_t getConnectorCount(void) const;
 	int selectConnector(int idx);

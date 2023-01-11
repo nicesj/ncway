@@ -6,6 +6,7 @@
 #include <cstdlib>
 #include <cerrno>
 #include <cstring>
+#include <memory>
 
 namespace ncway {
 
@@ -142,9 +143,9 @@ bool EGL::hasExt(const char *extensionList, const char *ext)
 	}
 }
 
-EGL *EGL::Create(GBM *gbm, int samples)
+std::shared_ptr<EGL> EGL::Create(std::shared_ptr<GBM> gbm, int samples)
 {
-	EGL *egl = new EGL();
+	std::shared_ptr<EGL> egl = std::shared_ptr<EGL>(new EGL());
 	if (egl == nullptr) {
 		fprintf(stderr, "Failed to allocate memory for the EGL\n");
 		return nullptr;
@@ -185,7 +186,6 @@ EGL *EGL::Create(GBM *gbm, int samples)
 	EGLint major, minor;
 	if (!eglInitialize(egl->display, &major, &minor)) {
 		printf("Failed to initialize\n");
-		delete egl;
 		return nullptr;
 	}
 
@@ -216,27 +216,23 @@ EGL *EGL::Create(GBM *gbm, int samples)
 
 	if (!eglBindAPI(EGL_OPENGL_ES_API)) {
 		printf("Failed to bind api EGL_OPENGL_ES_API\n");
-		delete egl;
 		return nullptr;
 	}
 
 	if (!egl->chooseConfig(egl->display, config_attribs, gbm->getFormat(), &egl->config)) {
 		printf("Failed to choose config\n");
-		delete egl;
 		return nullptr;
 	}
 
 	egl->context = eglCreateContext(egl->display, egl->config, EGL_NO_CONTEXT, context_attribs);
 	if (egl->context == nullptr) {
 		fprintf(stderr, "Failed to create a context\n");
-		delete egl;
 		return nullptr;
 	}
 
 	egl->surface = eglCreateWindowSurface(egl->display, egl->config, static_cast<EGLNativeWindowType>(gbm->getSurface()), nullptr);
 	if (egl->surface == EGL_NO_SURFACE) {
 		printf("Failed to create egl surface\n");
-		delete egl;
 		return nullptr;
 	}
 
@@ -294,7 +290,7 @@ int EGL::startRender(int (*render)(void))
 	return 0;
 }
 
-GBM *EGL::getGBM(void)
+std::shared_ptr<GBM> EGL::getGBM(void)
 {
 	return gbm;
 }

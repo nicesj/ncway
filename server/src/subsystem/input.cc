@@ -1,6 +1,8 @@
 #include "input.h"
 #include <cstdio>
 #include <string>
+#include <memory>
+
 #include <libinput.h>
 #include <libudev.h>
 #include <unistd.h>
@@ -48,7 +50,7 @@ int Input::handler(int fd, uint32_t mask)
 	return 1;
 }
 
-Input *Input::Create(std::string seat)
+std::shared_ptr<Input> Input::Create(std::string seat)
 {
 	// NOTE:
 	// interface must be declared in the Data section (or heap)
@@ -58,7 +60,7 @@ Input *Input::Create(std::string seat)
 		.close_restricted = Input::closeRestricted,
 	};
 
-	Input *instance = new Input();
+	std::shared_ptr<Input> instance = std::shared_ptr<Input>(new Input());
 	if (!instance) {
 		return nullptr;
 	}
@@ -80,7 +82,6 @@ Input *Input::Create(std::string seat)
 	// Do you want to know what is the "SEAT" here?
 	// Reference: https://wayland.freedesktop.org/libinput/doc/latest/seats.html
 	if (libinput_udev_assign_seat(instance->li, seat.c_str()) < 0) {
-		delete instance;
 		return nullptr;
 	}
 

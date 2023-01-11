@@ -2,6 +2,7 @@
 #include <libudev.h>
 #include <libinput.h>
 
+#include <memory>
 #include <string>
 
 namespace ncway
@@ -11,17 +12,17 @@ private:
 	Input(void);
 
 public:
-	static Input *Create(std::string seat);
+	static std::shared_ptr<Input> Create(std::string seat);
 	virtual ~Input(void);
 
 public:
-	std::string name(void);
-	std::string version(void);
-	bool isCompatible(std::string ver);
+	std::string name(void) override;
+	std::string version(void) override;
+	bool isCompatible(std::string ver) override;
 
 public:
-	int handler(int fd, uint32_t mask);
-	int getFD(void);
+	int handler(int fd, uint32_t mask) override;
+	int getFD(void) override;
 
 private:
 	static void closeRestricted(int fd, void *data);

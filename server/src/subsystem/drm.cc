@@ -4,6 +4,7 @@
 #include <cerrno>
 #include <string>
 #include <vector>
+#include <memory>
 
 #include <cstring>
 #include <unistd.h>
@@ -223,9 +224,9 @@ size_t DRM::getConnectorCount(void) const
 	return connectors.size();
 }
 
-DRM *DRM::Create(std::string nodePath, bool isMaster, bool isAtomic)
+std::shared_ptr<DRM> DRM::Create(std::string nodePath, bool isMaster, bool isAtomic)
 {
-	DRM *instance = new DRM();
+	std::shared_ptr<DRM> instance = std::shared_ptr<DRM>(new DRM());
 	if (!instance) {
 		return nullptr;
 	}
@@ -233,7 +234,6 @@ DRM *DRM::Create(std::string nodePath, bool isMaster, bool isAtomic)
 	instance->fd = open(nodePath.c_str(), O_RDWR);
 	if (instance->fd < 0) {
 		fprintf(stderr, "open(%s) returns %s\n", nodePath.c_str(), strerror(errno));
-		delete instance;
 		return nullptr;
 	}
 
@@ -241,7 +241,6 @@ DRM *DRM::Create(std::string nodePath, bool isMaster, bool isAtomic)
 		int ret = drmSetMaster(instance->fd);
 		if (ret < 0) {
 			fprintf(stderr, "Failed to be a master\n");
-			delete instance;
 			return nullptr;
 		}
 	}
@@ -250,7 +249,6 @@ DRM *DRM::Create(std::string nodePath, bool isMaster, bool isAtomic)
 		int ret = drmSetClientCap(instance->fd, DRM_CLIENT_CAP_ATOMIC, 1);
 		if (ret < 0) {
 			fprintf(stderr, "Failed to set atomic flag\n");
-			delete instance;
 			return nullptr;
 		}
 	}
@@ -258,7 +256,6 @@ DRM *DRM::Create(std::string nodePath, bool isMaster, bool isAtomic)
 	instance->resources = drmModeGetResources(instance->fd);
 	if (instance->resources == nullptr) {
 		fprintf(stderr, "drmModeGetResources failed: %s\n", strerror(errno));
-		delete instance;
 		return nullptr;
 	}
 
@@ -279,7 +276,6 @@ DRM *DRM::Create(std::string nodePath, bool isMaster, bool isAtomic)
 
 	if (instance->connectors.size() == 0) {
 		fprintf(stderr, "No active connector found\n");
-		delete instance;
 		return nullptr;
 	}
 

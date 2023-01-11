@@ -3,6 +3,8 @@
 #include "../subsystem.h"
 #include "gbm.h"
 
+#include <memory>
+
 #ifndef GL_ES_VERSION_2_0
 #include <GLES2/gl2.h>
 #endif
@@ -21,16 +23,18 @@ private:
 
 public:
 	virtual ~EGL(void);
-	int getFD(void);
-	int handler(int fd, uint32_t mask);
 
 public:
-	std::string name(void);
-	std::string version(void);
-	bool isCompatible(std::string ver);
+	int getFD(void) override;
+	int handler(int fd, uint32_t mask) override;
 
 public:
-	static EGL *Create(GBM *gbm, int samples);
+	std::string name(void) override;
+	std::string version(void) override;
+	bool isCompatible(std::string ver) override;
+
+public:
+	static std::shared_ptr<EGL> Create(std::shared_ptr<GBM> gbm, int samples);
 	EGLDisplay& getDisplay();
 	EGLConfig& getConfig();
 	EGLContext& getContext();
@@ -38,7 +42,7 @@ public:
 
 public:
 	int startRender(int (*render)(void));
-	GBM *getGBM(void);
+	std::shared_ptr<GBM> getGBM(void);
 
 private:
 	bool chooseConfig(EGLDisplay display, const EGLint *attrib, EGLint visual_id, EGLConfig *config_out);
@@ -51,7 +55,7 @@ private:
 	EGLContext context;
 	EGLSurface surface;
 
-	GBM *gbm;
+	std::shared_ptr<GBM> gbm;
 
 	PFNEGLGETPLATFORMDISPLAYEXTPROC eglGetPlatformDisplayEXT;
 	PFNEGLCREATEIMAGEKHRPROC eglCreateImageKHR;

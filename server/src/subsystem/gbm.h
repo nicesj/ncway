@@ -4,6 +4,8 @@
 #include "drm.h"
 #include "../buffer_descriptor.h"
 
+#include <memory>
+
 #include <unistd.h>
 #include <gbm.h>
 
@@ -17,16 +19,16 @@ public:
 	virtual ~GBM(void);
 
 public:
-	int getFD(void);
-	int handler(int fd, uint32_t mask);
+	int getFD(void) override;
+	int handler(int fd, uint32_t mask) override;
 
 public:
-	std::string name(void);
-	std::string version(void);
-	bool isCompatible(std::string ver);
+	std::string name(void) override;
+	std::string version(void) override;
+	bool isCompatible(std::string ver) override;
 
 public:
-	static GBM *Create(DRM *drm, uint32_t format, uint64_t modifier);
+	static std::shared_ptr<GBM> Create(std::shared_ptr<DRM> drm, uint32_t format, uint64_t modifier);
 	gbm_device *getDevice(void) const;
 	gbm_surface *getSurface(void) const;
 	int getWidth(void) const;
@@ -35,10 +37,10 @@ public:
 	BufferDescriptor *getBufferDescriptor(gbm_bo *bo, bool applyModifiers);
 	gbm_bo *getBufferObject(void);
 	void releaseBufferObject(gbm_bo *bo);
-	DRM *getDRM(void);
+	std::shared_ptr<DRM> getDRM(void);
 
 private:
-	DRM *drm;
+	std::shared_ptr<DRM> drm;
 	gbm_device *dev;
 	gbm_surface *surface;
 	uint32_t format;

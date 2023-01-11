@@ -8,8 +8,12 @@ public:
 	Renderer(void) = default;
 
 public:
-	std::string name(void);
-	std::string version(void);
-	bool isCompatible(std::string ver);
+	int handler(int fd, uint32_t mask) override;
+	int getFD(void) override;
+
+public:
+	std::string name(void) override;
+	std::string version(void) override;
+	bool isCompatible(std::string ver) override;
 };
 }

@@ -7,6 +7,8 @@
 #include "subsystem/egl.h"
 #include "event.h"
 
+#include <memory>
+
 #include <cstring>
 #include <cstdlib>
 #include <cstdio>
@@ -39,34 +41,40 @@ int main(int argc, char *argv[])
 		return -EFAULT;
 	}
 
-	ncway::Input *input = ncway::Input::Create(DEFAULT_SEAT);
+	std::shared_ptr<ncway::Input> input = ncway::Input::Create(DEFAULT_SEAT);
 	if (!input) {
 		fprintf(stderr, "Failed to create the Input");
 		wl_display_destroy(display);
 		return -EFAULT;
 	}
 
-	wl_event_source *event_source = wl_event_loop_add_fd(event_loop, input->getFD(), WL_EVENT_READABLE, ncway::Event::eventHandler, input);
+	// NOTE:
+	// The inputInfo object will be kept in the stack until terminating the process
+	ncway::Event::EventInfo inputInfo = {
+		.eventPtr = std::static_pointer_cast<ncway::Event>(input),
+	};
+	wl_event_source *event_source = wl_event_loop_add_fd(event_loop, input->getFD(), WL_EVENT_READABLE, ncway::Event::eventHandler, &inputInfo);
 	if (!event_source) {
 		fprintf(stderr, "Failed to add the input fd to the wl_event_loop\n");
-		delete input;
 		wl_display_destroy(display);
 		return -EFAULT;
 	}
 
-	ncway::DRM *drm = ncway::DRM::Create("/dev/dri/card0", true, false);
+	std::shared_ptr<ncway::DRM> drm = ncway::DRM::Create("/dev/dri/card0", true, false);
 	if (!drm) {
 		fprintf(stderr, "Failed to create the DRM");
-		delete input;
 		wl_display_destroy(display);
 		return -EFAULT;
 	}
 
-	wl_event_source *drm_event_source = wl_event_loop_add_fd(event_loop, drm->getFD(), WL_EVENT_READABLE, ncway::Event::eventHandler, drm);
+	// NOTE:
+	// The drmInfo object will be kept in the stack until terminating the process
+	ncway::Event::EventInfo drmInfo = {
+		.eventPtr = std::static_pointer_cast<ncway::Event>(drm),
+	};
+	wl_event_source *drm_event_source = wl_event_loop_add_fd(event_loop, drm->getFD(), WL_EVENT_READABLE, ncway::Event::eventHandler, &drmInfo);
 	if (!drm_event_source) {
 		fprintf(stderr, "Failed to add the DRM fd to the wl_event_loop\n");
-		delete drm;
-		delete input;
 		wl_display_destroy(display);
 		return -EFAULT;
 	}
@@ -76,15 +84,12 @@ int main(int argc, char *argv[])
 	printf("%d modes found\n", drm->getModeCount());
 	drm->selectMode(0);
 
-	ncway::GBM *gbm = ncway::GBM::Create(drm, DRM_FORMAT_XRGB8888, DRM_FORMAT_MOD_LINEAR);
-	ncway::EGL *egl = ncway::EGL::Create(gbm, 1);
+	std::shared_ptr<ncway::GBM> gbm = ncway::GBM::Create(drm, DRM_FORMAT_XRGB8888, DRM_FORMAT_MOD_LINEAR);
+	std::shared_ptr<ncway::EGL> egl = ncway::EGL::Create(gbm, 1);
 
 	printf("Running the wayland display on %s\n", socket);
 	wl_display_run(display);
 
-	delete gbm;
-	delete drm;
-	delete input;
 	wl_display_destroy(display);
 	return 0;
 }
