@@ -1,3 +1,5 @@
+#include <memory>
+
 #include <cstdio>
 #include <cerrno>
 #include <wayland-client.h>
@@ -19,18 +21,23 @@ static const wl_registry_listener registry_listener = {
 
 int main(int argc, char *argv[])
 {
-	wl_display *display = wl_display_connect(nullptr);
+	std::shared_ptr<wl_display> display = std::shared_ptr<wl_display>(wl_display_connect(nullptr),
+		[](wl_display *ptr) {
+			printf("Display object is disconnected %p\n", ptr);
+			if (ptr) {
+	       			wl_display_disconnect(ptr);
+			}
+		}
+	);
 	if (!display) {
-		fprintf(stderr, "Unable to connect to a display");
+		fprintf(stderr, "Unable to connect to a display\n");
 		return -EFAULT;
 	}
 
-	wl_registry *registry = wl_display_get_registry(display);
+	wl_registry *registry = wl_display_get_registry(display.get());
 	wl_registry_add_listener(registry, &registry_listener, nullptr);
-	wl_display_roundtrip(display);
+	wl_display_roundtrip(display.get());
 
 	printf("Connection established\n");
-
-	wl_display_disconnect(display);
 	return 0;
 }
