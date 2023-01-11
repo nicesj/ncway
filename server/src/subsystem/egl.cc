@@ -297,7 +297,6 @@ int EGL::startRender(std::function<void(void)> renderer)
 	DRM::EventData *evtData = new DRM::EventData();
 	evtData->bo = next_bo;
 	evtData->renderer = [&, renderer, evtData](void) -> void {
-		printf("Render!\n");
 		gbm_bo *bo = static_cast<gbm_bo *>(evtData->bo);
 		if (renderer) {
 			renderer();

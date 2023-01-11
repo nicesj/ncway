@@ -53,7 +53,17 @@ int DRM::getFD(void)
 
 void DRM::page_flip_handler(int fd, unsigned int frame, unsigned int sec, unsigned int usec, void *data)
 {
-	printf("Frame: %u (%u sec %u usec)\n", frame, sec, usec);
+	static unsigned int lastSec;
+	static int frameCount = 0;
+
+	if (lastSec != sec) {
+		printf("%u fps (%u sec)\n", frameCount, lastSec);
+		frameCount = 0;
+		lastSec = sec;
+	}
+
+	++frameCount;
+
 	if (data) {
 		DRM::EventData *evtData = static_cast<DRM::EventData *>(data);
 		if (evtData->renderer) {
