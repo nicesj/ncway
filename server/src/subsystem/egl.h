@@ -4,8 +4,7 @@
 #include "gbm.h"
 
 #include <memory>
-
-#include <wayland-server.h>
+#include <functional>
 
 #ifndef GL_ES_VERSION_2_0
 #include <GLES2/gl2.h>
@@ -14,6 +13,7 @@
 #include <EGL/egl.h>
 #include <EGL/eglext.h>
 
+#include <wayland-server.h>
 #include <gbm.h>
 #include <drm_fourcc.h>
 
@@ -43,7 +43,7 @@ public:
 	EGLSurface& getEGLSurface(void);
 
 public:
-	int startRender(int (*render)(void));
+	int startRender(std::function<int(void)> renderer);
 	std::shared_ptr<GBM> getGBM(void);
 	std::shared_ptr<wl_display> getDisplay(void);
 

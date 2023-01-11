@@ -85,6 +85,8 @@ int main(int argc, char *argv[])
 	std::shared_ptr<ncway::GBM> gbm = ncway::GBM::create(drm, DRM_FORMAT_XRGB8888, DRM_FORMAT_MOD_LINEAR);
 	std::shared_ptr<ncway::EGL> egl = ncway::EGL::create(gbm, 1);
 
+	egl->startRender(nullptr);
+
 	printf("Running the wayland display on %s\n", socket);
 	wl_display_run(display.get());
 	return 0;

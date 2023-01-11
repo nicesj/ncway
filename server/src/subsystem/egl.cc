@@ -1,12 +1,14 @@
-#include "egl.h"
-#include "gbm.h"
-#include "drm.h"
+#include "./egl.h"
+#include "./gbm.h"
+#include "./drm.h"
 #include "../buffer_descriptor.h"
+
+#include <memory>
+#include <functional>
 
 #include <cstdlib>
 #include <cerrno>
 #include <cstring>
-#include <memory>
 
 namespace ncway {
 
@@ -175,7 +177,8 @@ std::shared_ptr<EGL> EGL::create(std::shared_ptr<GBM> gbm, int samples)
 		EGL_NONE
 	};
 
-#define get_proc_client(ext, type, name) do { \
+#define get_proc_client(ext, type, name) \
+	do { \
 		if (egl->hasExt(egl_exts_client, #ext)) \
 			egl->name = reinterpret_cast<type>(eglGetProcAddress(#name)); \
 	} while(0)
@@ -195,7 +198,8 @@ std::shared_ptr<EGL> EGL::create(std::shared_ptr<GBM> gbm, int samples)
 		return nullptr;
 	}
 
-#define get_proc_dpy(ext, type, name) do { \
+#define get_proc_dpy(ext, type, name) \
+	do { \
 		if (egl->hasExt(egl_exts_dpy, #ext)) \
 			egl->name = reinterpret_cast<type>(eglGetProcAddress(#name)); \
 	} while (0)
@@ -244,7 +248,8 @@ std::shared_ptr<EGL> EGL::create(std::shared_ptr<GBM> gbm, int samples)
 
 	eglMakeCurrent(egl->display, egl->surface, egl->surface, egl->context);
 
-#define get_proc_gl(ext, type, name) do { \
+#define get_proc_gl(ext, type, name) \
+	do { \
 		if (egl->hasExt(gl_exts, #ext)) \
 			egl->name = reinterpret_cast<type>(eglGetProcAddress(#name)); \
 	} while (0)
@@ -275,7 +280,7 @@ std::shared_ptr<EGL> EGL::create(std::shared_ptr<GBM> gbm, int samples)
 	return egl;
 }
 
-int EGL::startRender(int (*render)(void))
+int EGL::startRender(std::function<int(void)> renderer)
 {
 	eglSwapBuffers(display, surface);
 	gbm_bo *bo = gbm->getBufferObject();
