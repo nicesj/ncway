@@ -6,6 +6,7 @@
 #include <cstring>
 #include <memory>
 
+#include <wayland-server.h>
 #include <drm_fourcc.h>
 #include <unistd.h>
 #include <gbm.h>
@@ -39,9 +40,10 @@ GBM::~GBM(void)
 	if (surface != nullptr) {
 		gbm_surface_destroy(surface);
 	}
+	printf("GBM is destructed\n");
 }
 
-std::shared_ptr<GBM> GBM::Create(std::shared_ptr<DRM> drm, uint32_t format, uint64_t modifier)
+std::shared_ptr<GBM> GBM::create(std::shared_ptr<DRM> drm, uint32_t format, uint64_t modifier)
 {
 	std::shared_ptr<GBM> instance = std::shared_ptr<GBM>(new GBM());
 	if (instance == nullptr) {
@@ -143,6 +145,11 @@ int GBM::getFD(void)
 int GBM::handler(int fd, uint32_t mask)
 {
 	return 1;
+}
+
+std::shared_ptr<wl_display> GBM::getDisplay(void)
+{
+	return drm->getDisplay();
 }
 
 BufferDescriptor *GBM::getBufferDescriptor(gbm_bo *bo, bool applyModifiers)

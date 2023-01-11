@@ -5,6 +5,8 @@
 
 #include <memory>
 
+#include <wayland-server.h>
+
 #ifndef GL_ES_VERSION_2_0
 #include <GLES2/gl2.h>
 #endif
@@ -34,15 +36,16 @@ public:
 	bool isCompatible(std::string ver) override;
 
 public:
-	static std::shared_ptr<EGL> Create(std::shared_ptr<GBM> gbm, int samples);
-	EGLDisplay& getDisplay();
-	EGLConfig& getConfig();
-	EGLContext& getContext();
-	EGLSurface& getSurface();
+	static std::shared_ptr<EGL> create(std::shared_ptr<GBM> gbm, int samples);
+	EGLDisplay& getEGLDisplay(void);
+	EGLConfig& getEGLConfig(void);
+	EGLContext& getEGLContext(void);
+	EGLSurface& getEGLSurface(void);
 
 public:
 	int startRender(int (*render)(void));
 	std::shared_ptr<GBM> getGBM(void);
+	std::shared_ptr<wl_display> getDisplay(void);
 
 private:
 	bool chooseConfig(EGLDisplay display, const EGLint *attrib, EGLint visual_id, EGLConfig *config_out);

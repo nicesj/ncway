@@ -5,6 +5,7 @@
 #include <vector>
 #include <memory>
 
+#include <wayland-server.h>
 #include <xf86drmMode.h>
 
 #include <unistd.h>
@@ -14,7 +15,7 @@ class DRM : public Subsystem {
 private:
 	DRM(void);
 public:
-	static std::shared_ptr<DRM> Create(std::string nodePath, bool isMaster, bool isAtomic);
+	static std::shared_ptr<DRM> create(std::shared_ptr<wl_display> display, std::string nodePath, bool isMaster, bool isAtomic);
 	virtual ~DRM(void);
 
 public:
@@ -41,6 +42,9 @@ public:
 
 	int getFBID(BufferDescriptor *desc);
 
+public:
+	std::shared_ptr<wl_display> getDisplay(void);
+
 private:
 	uint32_t findCRTC(drmModeEncoder *encoder);
 	uint32_t findCRTC(drmModeConnector *connector);
@@ -56,5 +60,8 @@ private:
 	uint32_t connector_id;
 
 	std::vector<drmModeConnector *> connectors;
+
+private:
+	std::shared_ptr<wl_display> display;
 };
 }

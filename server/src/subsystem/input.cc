@@ -1,8 +1,11 @@
 #include "input.h"
-#include <cstdio>
 #include <string>
 #include <memory>
 
+#include <cstdio>
+#include <cstdlib>
+
+#include <wayland-server.h>
 #include <libinput.h>
 #include <libudev.h>
 #include <unistd.h>
@@ -45,12 +48,32 @@ int Input::handler(int fd, uint32_t mask)
 
 	// TODO:
 	// Let's deal with the event object!!!
+	switch (libinput_event_get_type(evt)) {
+	case LIBINPUT_EVENT_KEYBOARD_KEY:
+		printf("Keyboard event catched!\n");
+		libinput_event_keyboard *keyEvt;
+		keyEvt = libinput_event_get_keyboard_event(evt);
+		if (!keyEvt) {
+			fprintf(stderr, "Invalid keyboard event!\n");
+			break;
+		}
+		uint32_t keyCode;
+		keyCode	= libinput_event_keyboard_get_key(keyEvt);
+		printf("KeyCode: %u\n", keyCode);
+		if (keyCode == static_cast<uint32_t>(16)) {
+			wl_display_terminate(display.get());
+		}
+		break;
+	default:
+		printf("Input event is not handled yet\n");
+		break;
+	}
 
 	libinput_event_destroy(evt);
 	return 1;
 }
 
-std::shared_ptr<Input> Input::Create(std::string seat)
+std::shared_ptr<Input> Input::create(std::shared_ptr<wl_display> display, std::string seat)
 {
 	// NOTE:
 	// interface must be declared in the Data section (or heap)
@@ -64,6 +87,8 @@ std::shared_ptr<Input> Input::Create(std::string seat)
 	if (!instance) {
 		return nullptr;
 	}
+
+	instance->display = display;
 
 	instance->ud = udev_new();
 	if (!instance->ud) {
@@ -98,6 +123,7 @@ Input::~Input(void)
 {
 	libinput_unref(li);
 	udev_unref(ud);
+	printf("Input is destructed\n");
 }
 
 std::string Input::name(void)
@@ -113,6 +139,11 @@ std::string Input::version(void)
 bool Input::isCompatible(std::string ver)
 {
 	return true;
+}
+
+std::shared_ptr<wl_display> Input::getDisplay(void)
+{
+	return display;
 }
 
 }

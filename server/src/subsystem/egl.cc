@@ -16,6 +16,7 @@ EGL::EGL(void)
 
 EGL::~EGL(void)
 {
+	printf("EGL is destructed\n");
 }
 
 std::string EGL::name(void)
@@ -43,24 +44,29 @@ int EGL::handler(int fd, uint32_t mask)
 	return 0;
 }
 
-EGLDisplay& EGL::getDisplay()
+EGLDisplay& EGL::getEGLDisplay(void)
 {
 	return display;
 }
 
-EGLConfig& EGL::getConfig()
+EGLConfig& EGL::getEGLConfig(void)
 {
 	return config;
 }
 
-EGLContext& EGL::getContext()
+EGLContext& EGL::getEGLContext(void)
 {
 	return context;
 }
 
-EGLSurface& EGL::getSurface()
+EGLSurface& EGL::getEGLSurface(void)
 {
 	return surface;
+}
+
+std::shared_ptr<wl_display> EGL::getDisplay(void)
+{
+	return gbm->getDisplay();
 }
 
 bool EGL::chooseConfig(EGLDisplay display, const EGLint *attribs, EGLint visual_id, EGLConfig *config_out)
@@ -143,7 +149,7 @@ bool EGL::hasExt(const char *extensionList, const char *ext)
 	}
 }
 
-std::shared_ptr<EGL> EGL::Create(std::shared_ptr<GBM> gbm, int samples)
+std::shared_ptr<EGL> EGL::create(std::shared_ptr<GBM> gbm, int samples)
 {
 	std::shared_ptr<EGL> egl = std::shared_ptr<EGL>(new EGL());
 	if (egl == nullptr) {

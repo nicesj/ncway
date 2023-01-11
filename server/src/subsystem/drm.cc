@@ -7,6 +7,8 @@
 #include <memory>
 
 #include <cstring>
+
+#include <wayland-server.h>
 #include <unistd.h>
 #include <fcntl.h>
 #include <xf86drm.h>
@@ -40,6 +42,8 @@ DRM::~DRM(void)
 	if (fd >= 0 && close(fd) < 0) {
 		fprintf(stderr, "close: %s\n", strerror(errno));
 	}
+
+	printf("DRM is destructed\n");
 }
 
 int DRM::getFD(void)
@@ -224,12 +228,14 @@ size_t DRM::getConnectorCount(void) const
 	return connectors.size();
 }
 
-std::shared_ptr<DRM> DRM::Create(std::string nodePath, bool isMaster, bool isAtomic)
+std::shared_ptr<DRM> DRM::create(std::shared_ptr<wl_display> display, std::string nodePath, bool isMaster, bool isAtomic)
 {
 	std::shared_ptr<DRM> instance = std::shared_ptr<DRM>(new DRM());
 	if (!instance) {
 		return nullptr;
 	}
+
+	instance->display = display;
 
 	instance->fd = open(nodePath.c_str(), O_RDWR);
 	if (instance->fd < 0) {
@@ -280,6 +286,11 @@ std::shared_ptr<DRM> DRM::Create(std::string nodePath, bool isMaster, bool isAto
 	}
 
 	return instance;
+}
+
+std::shared_ptr<wl_display> DRM::getDisplay(void)
+{
+	return display;
 }
 
 std::string DRM::name(void)
