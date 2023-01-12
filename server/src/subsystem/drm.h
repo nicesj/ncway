@@ -41,11 +41,11 @@ public:
 	int getModeCount(void) const;
 	const drmModeModeInfo &getMode(void) const;
 
-	int addFramebuffer(BufferDescriptor *desc);
+	uint32_t addFramebuffer(BufferDescriptor *desc);
 	int setCrtcMode(int fb_id, int x, int y);
 	int pageFlip(int fb_id, void *data);
 
-	int getFBID(BufferDescriptor *desc);
+	uint32_t getFBID(BufferDescriptor *desc);
 
 public:
 	std::shared_ptr<wl_display> getDisplay(void);

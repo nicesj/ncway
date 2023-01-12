@@ -1,5 +1,6 @@
 #include "./gbm.h"
 #include "./drm.h"
+#include "../buffer_descriptor.h"
 
 #include <string>
 #include <cstdio>
@@ -168,8 +169,7 @@ BufferDescriptor *GBM::getBufferDescriptor(gbm_bo *bo, bool applyModifiers)
 	desc->width = gbm_bo_get_width(bo);
 	desc->height = gbm_bo_get_height(bo);
 	desc->format = gbm_bo_get_format(bo);
-	desc->user_data = nullptr;
-	desc->user_data_destructor = nullptr;
+	desc->fb_id = 0;
 
 	if (applyModifiers && gbm_bo_get_modifier && gbm_bo_get_plane_count && gbm_bo_get_stride_for_plane && gbm_bo_get_offset) {
 		desc->modifiers[0] = gbm_bo_get_modifier(bo);
@@ -196,9 +196,7 @@ BufferDescriptor *GBM::getBufferDescriptor(gbm_bo *bo, bool applyModifiers)
 
 	gbm_bo_set_user_data(bo, desc, [](gbm_bo *bo, void *data) {
 		BufferDescriptor *desc = static_cast<BufferDescriptor *>(data);
-		if (desc->user_data_destructor) {
-			desc->user_data_destructor(desc);
-		}
+		printf("Destroy bufferDesctiptor\n");
 		delete desc;
 	});
 

@@ -285,15 +285,13 @@ int EGL::startRender(std::function<void(void)> renderer)
 	eglSwapBuffers(display, surface);
 	gbm_bo *bo = gbm->getBufferObject();
 	BufferDescriptor *desc = gbm->getBufferDescriptor(bo, false);
-	gbm->getDRM()->addFramebuffer(desc);
-	int fb_id = gbm->getDRM()->getFBID(desc);
+	uint32_t fb_id = gbm->getDRM()->addFramebuffer(desc);
 	gbm->getDRM()->setCrtcMode(fb_id, 0, 0);
 
 	eglSwapBuffers(display, surface);
 	gbm_bo *next_bo = gbm->getBufferObject();
 	BufferDescriptor *next_desc = gbm->getBufferDescriptor(next_bo, false);
-	gbm->getDRM()->addFramebuffer(next_desc);
-	int next_fb_id = gbm->getDRM()->getFBID(next_desc);
+	uint32_t next_fb_id = gbm->getDRM()->addFramebuffer(next_desc);
 	DRM::EventData *evtData = new DRM::EventData();
 	evtData->bo = next_bo;
 	evtData->renderer = [&, renderer, evtData](void) -> void {
@@ -305,7 +303,7 @@ int EGL::startRender(std::function<void(void)> renderer)
 
 		gbm_bo *next_bo = gbm->getBufferObject();
 		BufferDescriptor *next_desc = gbm->getBufferDescriptor(next_bo, false);
-		int next_fb_id = gbm->getDRM()->getFBID(next_desc);
+		uint32_t next_fb_id = gbm->getDRM()->getFBID(next_desc);
 		evtData->bo = static_cast<void *>(next_bo);
 
 		gbm->getDRM()->pageFlip(next_fb_id, evtData);

@@ -290,54 +290,32 @@ bool DRM::isCompatible(std::string ver)
 	return true;
 }
 
-int DRM::addFramebuffer(BufferDescriptor *desc)
+uint32_t DRM::addFramebuffer(BufferDescriptor *desc)
 {
-	uint32_t fb_id;
 	int ret = drmModeAddFB2WithModifiers(fd,
 		       desc->width, desc->height, desc->format,
 		       desc->handles, desc->strides, desc->offsets, desc->modifiers,
-		       &fb_id, desc->flags);
+		       &desc->fb_id, desc->flags);
 	if (ret) {
-		fprintf(stderr, "Failed to create FB: %s\n", strerror(errno));
-		ret = drmModeAddFB2(fd, desc->width, desc->height, desc->format, desc->handles, desc->strides, desc->offsets, &fb_id, 0);
+		fprintf(stderr, "Failed to create FB: %s (%d) Fallback to drmModeAddFB2()\n", strerror(errno), fd);
+		ret = drmModeAddFB2(fd, desc->width, desc->height, desc->format, desc->handles, desc->strides, desc->offsets, &desc->fb_id, 0);
 		if (ret) {
 			fprintf(stderr, "Failed to create FB: %s\n", strerror(errno));
+			return 0;
 		}
 	}
 
-	if (ret) {
-		return -EFAULT;
-	}
-
-	FramebufferDescriptor *fbDesc = new FramebufferDescriptor();
-	if (!fbDesc) {
-		fprintf(stderr, "Failed to allocate memory\n");
-		drmModeRmFB(fd, fb_id);
-		return -ENOMEM;
-	}
-	fbDesc->fb_id = fb_id;
-	fbDesc->fd = fd;
-	desc->user_data = fbDesc;
-	desc->user_data_destructor = [](BufferDescriptor *desc) {
-		FramebufferDescriptor *fbDesc = static_cast<FramebufferDescriptor *>(desc->user_data);
-		drmModeRmFB(fbDesc->fd, fbDesc->fb_id);
-		delete fbDesc;
-		desc->user_data = nullptr;
-		desc->user_data_destructor = nullptr;
-		return;
+	desc->customDestructor = [&](BufferDescriptor *desc) -> void {
+		printf("FB destroyed: %u\n", desc->fb_id);
+		drmModeRmFB(fd, desc->fb_id);
 	};
 
-	return 0;
+	return desc->fb_id;
 }
 
-int DRM::getFBID(BufferDescriptor *desc)
+uint32_t DRM::getFBID(BufferDescriptor *desc)
 {
-	if (!desc->user_data) {
-		return -1;
-	}
-
-	FramebufferDescriptor *fbDesc = static_cast<FramebufferDescriptor *>(desc->user_data);
-	return fbDesc->fb_id;
+	return desc->fb_id;
 }
 
 int DRM::setCrtcMode(int fb_id, int x, int y)
