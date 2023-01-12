@@ -35,14 +35,11 @@ public:
 	int handler(int fd, uint32_t mask) override;
 	int getFD(void) override;
 
-	size_t getConnectorCount(void) const;
-	int selectConnector(int idx);
-	int selectMode(int idx);
+	size_t count(void) const;
+	int select(int idx);
+	int setMode(int idx);
 	int getModeCount(void) const;
 	const drmModeModeInfo &getMode(void) const;
-
-	drmModeEncoder *getEncoder(void);
-	drmModeConnector *getConnector(void);
 
 	int addFramebuffer(BufferDescriptor *desc);
 	int setCrtcMode(int fb_id, int x, int y);
@@ -54,21 +51,25 @@ public:
 	std::shared_ptr<wl_display> getDisplay(void);
 
 private:
-	uint32_t findCRTC(drmModeEncoder *encoder);
-	uint32_t findCRTC(drmModeConnector *connector);
 	static void page_flip_handler(int fd, unsigned int frame, unsigned int sec, unsigned int usec, void *data);
 	static void vblank_handler(int fd, unsigned int sequence, unsigned int sec, unsigned int usec, void *data);
 
 private:
 	int fd;
-	drmModeRes *resources;
-	drmModeEncoder *encoder;
-	drmModeConnector *connector;
-	drmModeModeInfo modeInfo;
-	uint32_t crtc_id;
-	uint32_t connector_id;
 
-	std::vector<drmModeConnector *> connectors;
+	struct DRMDevice {
+		DRMDevice(void);
+		virtual ~DRMDevice(void);
+
+		drmModeConnector *connector;
+		uint32_t crtc_id;
+		drmModeModeInfo *modeInfo;
+	};
+
+	std::vector<std::shared_ptr<DRMDevice>> DRMDevices;
+	std::shared_ptr<DRMDevice> selectedDevice;
+
+	bool isBoundedCRTC(uint32_t crtc_id);
 
 private:
 	std::shared_ptr<wl_display> display;

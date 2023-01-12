@@ -77,10 +77,10 @@ int main(int argc, char *argv[])
 		return -EFAULT;
 	}
 
-	printf("%zu connectors are found\n", drm->getConnectorCount());
-	drm->selectConnector(0);
+	printf("%zu connectors are found\n", drm->count());
+	drm->select(0);
 	printf("%d modes found\n", drm->getModeCount());
-	drm->selectMode(0);
+	drm->setMode(0);
 
 	std::shared_ptr<ncway::GBM> gbm = ncway::GBM::create(drm, DRM_FORMAT_XRGB8888, DRM_FORMAT_MOD_LINEAR);
 	std::shared_ptr<ncway::EGL> egl = ncway::EGL::create(gbm, 1);

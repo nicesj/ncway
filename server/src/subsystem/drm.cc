@@ -15,29 +15,33 @@
 #include <xf86drmMode.h>
 
 namespace ncway {
+
+DRM::DRMDevice::DRMDevice(void)
+: connector(nullptr)
+, crtc_id(0)
+, modeInfo(nullptr)
+{
+}
+
+DRM::DRMDevice::~DRMDevice(void)
+{
+	if (!connector) {
+		return;
+	}
+
+	printf("Connector: %d is released\n", connector->connector_id);
+	drmModeFreeConnector(connector);
+	connector = nullptr;
+}
+
 DRM::DRM(void)
 : fd(-1)
-, resources(nullptr)
-, encoder(nullptr)
-, connector(nullptr)
 {
 }
 
 DRM::~DRM(void)
 {
-	if (encoder) {
-		drmModeFreeEncoder(encoder);
-	}
-
-	std::vector<drmModeConnector*>::iterator it;
-	for (it = connectors.begin(); it != connectors.end(); ++it) {
-		drmModeFreeConnector(*it);
-	}
-	connectors.clear();
-
-	if (resources) {
-		drmModeFreeResources(resources);
-	}
+	DRMDevices.clear();
 
 	if (fd >= 0 && close(fd) < 0) {
 		fprintf(stderr, "close: %s\n", strerror(errno));
@@ -94,23 +98,18 @@ int DRM::handler(int fd, uint32_t mask)
 
 int DRM::getModeCount(void) const
 {
-	if (!connector) {
-		fprintf(stderr, "Connector must be selected first\n");
-		return -EINVAL;
-	}
-
-	return connector->count_modes;
+	return selectedDevice->connector->count_modes;
 }
 
 const drmModeModeInfo &DRM::getMode(void) const
 {
-	return modeInfo;
+	return *(selectedDevice->modeInfo);
 }
 
-int DRM::selectMode(int idx)
+int DRM::setMode(int idx)
 {
-	if (!connector) {
-		fprintf(stderr, "Connector must be selected first\n");
+	if (idx >= selectedDevice->connector->count_modes) {
+		fprintf(stderr, "Invalid modes(%d) must be in between %d and %d\n", idx, 0, selectedDevice->connector->count_modes);
 		return -EINVAL;
 	}
 
@@ -120,137 +119,50 @@ int DRM::selectMode(int idx)
 		// Find a preferred mode
 		// or the highest resolution
 		int area = 0;
-		for (int i = 0; i < connector->count_modes; ++i) {
-			drmModeModeInfo *current_mode = &connector->modes[i];
+		for (int i = 0; i < selectedDevice->connector->count_modes; ++i) {
+			drmModeModeInfo *current_mode = &selectedDevice->connector->modes[i];
 			if (current_mode->type & DRM_MODE_TYPE_PREFERRED) {
 				printf("Selected mode is %d\n", i);
-				modeInfo = *current_mode;
 				idx = i;
 				break;
 			}
 
 			int current_area = current_mode->hdisplay * current_mode->vdisplay;
 			if (current_area > area) {
-				modeInfo = *current_mode;
 				area = current_area;
 				idx = i;
 				printf("Selected mode is %d (%dx%d)\n", i, current_mode->hdisplay, current_mode->vdisplay);
 			}
 		}
-	} else if (idx >= connector->count_modes) {
-		fprintf(stderr, "Invalid modes(%d) must be in between %d and %d\n", idx, 0, connector->count_modes);
+		if (idx < 0) {
+			fprintf(stderr, "Unable to find the proper mode\n");
+			return -EINVAL;
+		}
+	}
+
+	selectedDevice->modeInfo = &selectedDevice->connector->modes[idx];
+	printf("%s (%dx%d)\n",
+		selectedDevice->modeInfo->name,
+	       	selectedDevice->modeInfo->hdisplay,
+	       	selectedDevice->modeInfo->vdisplay
+	);
+
+	return 0;
+}
+
+int DRM::select(int idx)
+{
+	if (idx < 0 || idx > DRMDevices.size()) {
 		return -EINVAL;
 	}
 
-	modeInfo = connector->modes[idx];
-	fprintf(stderr, "%s (%dx%d)\n", modeInfo.name, modeInfo.hdisplay, modeInfo.vdisplay);
-
+	selectedDevice = DRMDevices[idx];
 	return 0;
 }
 
-uint32_t DRM::findCRTC(drmModeConnector *connector)
+size_t DRM::count(void) const
 {
-	if (!connector) {
-		fprintf(stderr, "connector is not declared\n");
-		return 0;
-	}
-
-	for (int i = 0; i< connector->count_encoders; ++i) {
-		const uint32_t encoder_id = connector->encoders[i];
-		drmModeEncoder *_encoder = drmModeGetEncoder(fd, encoder_id);
-
-		if (!_encoder) {
-			continue;
-		}
-
-		const uint32_t crtc_id = findCRTC(_encoder);
-		if (crtc_id == 0) {
-			continue;
-		}
-
-		if (encoder != nullptr) {
-			drmModeFreeEncoder(encoder);
-		}
-
-		encoder = _encoder;
-		return crtc_id;
-	}
-
-	return 0;
-}
-
-uint32_t DRM::findCRTC(drmModeEncoder *encoder)
-{
-	if (!encoder) {
-		fprintf(stderr, "encoder is not declared\n");
-		return 0;
-	}
-
-	for (int i = 0; i < resources->count_crtcs; ++i) {
-		const uint32_t crtc_mask = 1 << i;
-		const uint32_t crtc_id = resources->crtcs[i];
-		if (encoder->possible_crtcs & crtc_mask) {
-			return crtc_id;
-		}
-	}
-
-	return 0;
-}
-
-int DRM::selectConnector(int idx)
-{
-	if (idx < 0 || idx >= connectors.size()) {
-		fprintf(stderr, "Invalid connector index (%d < %zu)\n", idx, connectors.size());
-		return -EINVAL;
-	}
-
-	connector = connectors[idx];
-	connector_id = connector->connector_id;
-
-	if (encoder) {
-		drmModeFreeEncoder(encoder);
-		encoder = nullptr;
-	}
-
-	for (int i = 0; i < resources->count_encoders; ++i) {
-		encoder = drmModeGetEncoder(fd, resources->encoders[i]);
-		if (encoder == nullptr) {
-			fprintf(stderr, "Get a nullptr encoder [%d]\n", i);
-			continue;
-		}
-
-		if (encoder->encoder_id == connector->encoder_id) {
-			printf("Encoder %d found\n", encoder->encoder_id);
-			break;
-		}
-
-		drmModeFreeEncoder(encoder);
-		encoder = nullptr;
-	}
-
-	if (!encoder) {
-		fprintf(stderr, "Find Connector & Encoder in a different way\n");
-		crtc_id = findCRTC(connector);
-	} else {
-		crtc_id = encoder->crtc_id;
-	}
-
-	if (crtc_id == 0) {
-		fprintf(stderr, "No matching encoder with connector\n");
-		connector = nullptr;
-		if (encoder) {
-			drmModeFreeEncoder(encoder);
-			encoder = nullptr;
-		}
-		return -ENOENT;
-	}
-
-	return 0;
-}
-
-size_t DRM::getConnectorCount(void) const
-{
-	return connectors.size();
+	return DRMDevices.size();
 }
 
 std::shared_ptr<DRM> DRM::create(std::shared_ptr<wl_display> display, std::string nodePath, bool isMaster, bool isAtomic)
@@ -284,33 +196,78 @@ std::shared_ptr<DRM> DRM::create(std::shared_ptr<wl_display> display, std::strin
 		}
 	}
 
-	instance->resources = drmModeGetResources(instance->fd);
-	if (instance->resources == nullptr) {
+	// We have "resources"
+	drmModeRes *resources = drmModeGetResources(instance->fd);
+	if (resources == nullptr) {
 		fprintf(stderr, "drmModeGetResources failed: %s\n", strerror(errno));
 		return nullptr;
 	}
 
-	for (int i = 0; i < instance->resources->count_connectors; ++i) {
-		drmModeConnector *connector = drmModeGetConnector(instance->fd, instance->resources->connectors[i]);
+	// Find a fully connected path of
+	// "connector", "encoder" and "crtc"
+	// in order to manipulate the GBM
+	// Now, lets walk through the connectors
+	for (int i = 0; i < resources->count_connectors; ++i) {
+		drmModeConnector *connector = drmModeGetConnector(instance->fd, resources->connectors[i]);
 		if (connector == nullptr) {
 			fprintf(stderr, "Get a nullptr connector [%d]\n", i);
 			continue;
 		}
 
-		if (connector->connection == DRM_MODE_CONNECTED && connector->count_modes > 0) {
-			instance->connectors.push_back(connector);
-			printf("Connector %d found\n", connector->connector_id);
-		} else {
+		if (connector->connection != DRM_MODE_CONNECTED || connector->count_modes == 0) {
 			drmModeFreeConnector(connector);
+			continue;
+		}
+
+		printf("Connector %d found\n", connector->connector_id);
+
+		drmModeEncoder *encoder = drmModeGetEncoder(instance->fd, connector->encoder_id);
+		if (encoder == nullptr) {
+			drmModeFreeConnector(connector);
+			continue;
+		}
+
+		uint32_t crtc_id = encoder->crtc_id;
+		int j = 0;
+		while (j < resources->count_crtcs && (crtc_id == 0 || instance->isBoundedCRTC(crtc_id))) {
+			const uint32_t crtc_mask = 1 << j;
+			if (!(encoder->possible_crtcs & crtc_mask)) {
+				++j;
+				continue;
+			}
+
+			if (resources->crtcs[j] == encoder->crtc_id) {
+				++j;
+				continue;
+			}
+
+			crtc_id = resources->crtcs[j];
+			++j;
+		}
+
+		drmModeFreeEncoder(encoder);
+
+		std::shared_ptr<DRMDevice> device = std::make_shared<DRMDevice>();
+		device->connector = connector;
+		device->crtc_id = crtc_id;
+		instance->DRMDevices.push_back(std::move(device));
+	}
+
+	drmModeFreeResources(resources);
+	return instance;
+}
+
+bool DRM::isBoundedCRTC(uint32_t crtc_id)
+{
+	std::vector<std::shared_ptr<DRMDevice>>::const_iterator it;
+	for (it = DRMDevices.begin(); it != DRMDevices.end(); ++it) {
+		if ((*it)->crtc_id == crtc_id) {
+			// Alredy bounded crtc_id
+			return true;
 		}
 	}
 
-	if (instance->connectors.size() == 0) {
-		fprintf(stderr, "No active connector found\n");
-		return nullptr;
-	}
-
-	return instance;
+	return false;
 }
 
 std::shared_ptr<wl_display> DRM::getDisplay(void)
@@ -331,16 +288,6 @@ std::string DRM::version(void)
 bool DRM::isCompatible(std::string ver)
 {
 	return true;
-}
-
-drmModeEncoder *DRM::getEncoder(void)
-{
-	return encoder;
-}
-
-drmModeConnector *DRM::getConnector(void)
-{
-	return connector;
 }
 
 int DRM::addFramebuffer(BufferDescriptor *desc)
@@ -395,12 +342,18 @@ int DRM::getFBID(BufferDescriptor *desc)
 
 int DRM::setCrtcMode(int fb_id, int x, int y)
 {
-	return drmModeSetCrtc(fd, crtc_id, fb_id, x, y, &connector_id, 1, &modeInfo);
+	return drmModeSetCrtc(
+		fd,
+	       	selectedDevice->crtc_id,
+	       	fb_id, x, y,
+	       	&(selectedDevice->connector->connector_id), 1,
+	       	selectedDevice->modeInfo
+	);
 }
 
 int DRM::pageFlip(int fb_id, void *data)
 {
-	return drmModePageFlip(fd, crtc_id, fb_id, DRM_MODE_PAGE_FLIP_EVENT, data);
+	return drmModePageFlip(fd, selectedDevice->crtc_id, fb_id, DRM_MODE_PAGE_FLIP_EVENT, data);
 }
 
 }
