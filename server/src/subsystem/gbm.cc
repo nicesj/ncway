@@ -61,17 +61,15 @@ std::shared_ptr<GBM> GBM::create(std::shared_ptr<DRM> drm, uint32_t format, uint
 	}
 	instance->format = format;
 
+	const drmModeModeInfo mode = drm->getMode();
+
 	if (gbm_surface_create_with_modifiers) {
-		const drmModeModeInfo mode = drm->getMode();
 		printf("Screen resolution: [%ux%u]\n", mode.hdisplay, mode.vdisplay);
 		printf("Instance Device: %p\n", instance->dev);
 		instance->surface = gbm_surface_create_with_modifiers(instance->dev,
 			       	mode.hdisplay, mode.vdisplay,
 			       	format,
 			       	&modifier, 1);
-		printf("surface is created: %p\n", instance->surface);
-		instance->width = mode.hdisplay;
-		instance->height = mode.vdisplay;
 	}
 
 	if (instance->surface == nullptr) {
@@ -80,13 +78,10 @@ std::shared_ptr<GBM> GBM::create(std::shared_ptr<DRM> drm, uint32_t format, uint
 			return nullptr;
 		}
 
-		const drmModeModeInfo mode = drm->getMode();
 		instance->surface = gbm_surface_create(instance->dev,
 			       	mode.hdisplay, mode.vdisplay,
 			       	instance->format,
 			       	GBM_BO_USE_SCANOUT | GBM_BO_USE_RENDERING);
-		instance->width = mode.hdisplay;
-		instance->height = mode.vdisplay;
 	}
 
 	if (instance->surface == nullptr) {
@@ -94,7 +89,10 @@ std::shared_ptr<GBM> GBM::create(std::shared_ptr<DRM> drm, uint32_t format, uint
 		return nullptr;
 	}
 
-	printf("Surface is prepared\n");
+	instance->width = mode.hdisplay;
+	instance->height = mode.vdisplay;
+
+	printf("Surface is prepared (%p)\n", instance->surface);
 	return instance;
 }
 
