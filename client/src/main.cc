@@ -43,8 +43,10 @@ int main(int argc, char *argv[])
 
 	wl_registry *registry = wl_display_get_registry(display.get());
 	wl_registry_add_listener(registry, &registry_listener, nullptr);
+	printf("roundtrip\n");
 	wl_display_roundtrip(display.get());
 
+	printf("Prepare the main loop\n");
 	epoll_event events[MAX_EVENTS + 1];
 
 	int handle = epoll_create1(EPOLL_CLOEXEC);
@@ -69,6 +71,16 @@ int main(int argc, char *argv[])
 			return 0;
 		}
 
+		ev.data.ptr = reinterpret_cast<void *>(0x02);
+		if (epoll_ctl(handle, EPOLL_CTL_ADD, STDIN_FILENO, &ev) < 0) {
+			fprintf(stderr, "epoll_ctl: %s\n", strerror(errno));
+			if (close(handle) < 0) {
+				fprintf(stderr, "close: %s\n", strerror(errno));
+			}
+			return 0;
+		}
+
+		printf("Watch file descriptors\n");
 		do {
 			int ret = epoll_pwait(handle, events, MAX_EVENTS, TIMEOUT_IN_MS, nullptr);
 			if (ret < 0) {
@@ -91,9 +103,23 @@ int main(int argc, char *argv[])
 				}
 
 				if (events[i].events & (EPOLLIN | EPOLLPRI)) {
-					// Read
-					if (wl_display_dispatch(display.get()) < 0) {
-						fprintf(stderr, "dispatch: %s\n", strerror(errno));
+					if (events[i].data.ptr == reinterpret_cast<void *>(0x01)) {
+						if (wl_display_dispatch(display.get()) < 0) {
+							fprintf(stderr, "dispatch: %s\n", strerror(errno));
+						}
+					} else if (events[i].data.ptr == reinterpret_cast<void *>(0x02)) {
+						char ch;
+						if (read(STDIN_FILENO, &ch, sizeof(ch)) != sizeof(ch)) {
+							fprintf(stderr, "getc: %s\n", strerror(errno));
+						} else {
+							switch (ch) {
+							case 'q':
+								printf("Quit!\n");
+								return 0;
+							default:
+								break;
+							}
+						}
 					}
 				}
 

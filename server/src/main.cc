@@ -8,6 +8,8 @@
 #include "event.h"
 
 #include <memory>
+#include <vector>
+#include <algorithm>
 
 #include <cstring>
 #include <cstdlib>
@@ -17,12 +19,46 @@
 
 #define DEFAULT_SEAT "seat0"
 
+struct ClientOutput {
+};
+
+std::vector<ClientOutput*> gVectorClientOutput;
+
+static void wl_output_handle_resource_destroy(wl_resource *resource)
+{
+	ClientOutput *clientOutput = reinterpret_cast<ClientOutput *>(wl_resource_get_user_data(resource));
+
+	gVectorClientOutput.erase(std::remove(gVectorClientOutput.begin(), gVectorClientOutput.end(), clientOutput), gVectorClientOutput.end());
+	delete clientOutput;
+}
+
+static void wl_output_handle_release(wl_client *client, wl_resource *resource)
+{
+	wl_resource_destroy(resource);
+}
+
+static const struct wl_output_interface wl_output_implementation = {
+	.release = wl_output_handle_release,
+};
+
+static void wl_output_handle_bind(wl_client *client, void *data, uint32_t version, uint32_t id)
+{
+	ClientOutput *clientOutput = new ClientOutput();
+
+	printf("output handle bound! %u %u\n", version, id);
+	wl_resource *resource = wl_resource_create(client, &wl_output_interface, wl_output_interface.version, id);
+	wl_resource_set_implementation(resource, &wl_output_implementation, clientOutput, wl_output_handle_resource_destroy);
+
+	gVectorClientOutput.push_back(clientOutput);
+}
+
 int main(int argc, char *argv[])
 {
 	std::shared_ptr<wl_display> display = std::shared_ptr<wl_display>(wl_display_create(), [](wl_display *ptr) {
 		wl_display_destroy(ptr);
 		printf("Display object is destructed\n");
 	});
+
 	if (!display) {
 		fprintf(stderr, "Unable to create the wayland display\n");
 		return -EFAULT;
@@ -86,6 +122,8 @@ int main(int argc, char *argv[])
 	std::shared_ptr<ncway::EGL> egl = ncway::EGL::create(gbm, 1);
 
 	egl->startRender(nullptr);
+
+	wl_global_create(display.get(), &wl_output_interface, 1, nullptr, wl_output_handle_bind);
 
 	printf("Running the wayland display on %s\n", socket);
 	wl_display_run(display.get());
