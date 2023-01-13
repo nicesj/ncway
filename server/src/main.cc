@@ -45,11 +45,31 @@ static void wl_output_handle_bind(wl_client *client, void *data, uint32_t versio
 {
 	ClientOutput *clientOutput = new ClientOutput();
 
-	printf("output handle bound! %u %u\n", version, id);
+	printf("output handle bounded! %u %u\n", version, id);
 	wl_resource *resource = wl_resource_create(client, &wl_output_interface, wl_output_interface.version, id);
 	wl_resource_set_implementation(resource, &wl_output_implementation, clientOutput, wl_output_handle_resource_destroy);
 
 	gVectorClientOutput.push_back(clientOutput);
+}
+
+static void wl_compositor_create_surface(wl_client *client, wl_resource *resource, uint32_t id)
+{
+	printf("Create surface! id = %u\n", id);
+}
+
+static void wl_compositor_create_region(wl_client *client, wl_resource *resource, uint32_t id)
+{
+	printf("Create region! id = %u\n", id);
+}
+
+static const struct wl_compositor_interface wl_compositor_implementation = {
+	.create_surface = wl_compositor_create_surface,
+	.create_region = wl_compositor_create_region,
+};
+
+static void wl_compositor_handle_bind(wl_client *client, void *data, uint32_t version, uint32_t id)
+{
+	printf("compositor handle bounded! %u %u\n", version, id);
 }
 
 int main(int argc, char *argv[])
@@ -124,6 +144,7 @@ int main(int argc, char *argv[])
 	egl->startRender(nullptr);
 
 	wl_global_create(display.get(), &wl_output_interface, 1, nullptr, wl_output_handle_bind);
+	wl_global_create(display.get(), &wl_compositor_interface, 1, nullptr, wl_compositor_handle_bind);
 
 	printf("Running the wayland display on %s\n", socket);
 	wl_display_run(display.get());
