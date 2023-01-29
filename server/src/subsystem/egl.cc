@@ -262,21 +262,6 @@ std::shared_ptr<EGL> EGL::create(std::shared_ptr<GBM> gbm, int samples)
 	printf("  renderer: \"%s\"\n", glGetString(GL_RENDERER));
 	printf("  extensions: \"%s\"\n", gl_exts);
 	printf("====================================\n");
-
-	get_proc_gl(GL_OES_EGL_image, PFNGLEGLIMAGETARGETTEXTURE2DOESPROC, glEGLImageTargetTexture2DOES);
-
-	get_proc_gl(GL_AND_performance_monitor, PFNGLGETPERFMONITORGROUPSAMDPROC, glGetPerfMonitorGroupsAMD);
-	get_proc_gl(GL_AND_performance_monitor, PFNGLGETPERFMONITORCOUNTERSAMDPROC, glGetPerfMonitorCountersAMD);
-	get_proc_gl(GL_AMD_performance_monitor, PFNGLGETPERFMONITORGROUPSTRINGAMDPROC, glGetPerfMonitorGroupStringAMD);
-	get_proc_gl(GL_AMD_performance_monitor, PFNGLGETPERFMONITORCOUNTERSTRINGAMDPROC, glGetPerfMonitorCounterStringAMD);
-	get_proc_gl(GL_AMD_performance_monitor, PFNGLGETPERFMONITORCOUNTERINFOAMDPROC, glGetPerfMonitorCounterInfoAMD);
-	get_proc_gl(GL_AMD_performance_monitor, PFNGLGENPERFMONITORSAMDPROC, glGenPerfMonitorsAMD);
-	get_proc_gl(GL_AMD_performance_monitor, PFNGLDELETEPERFMONITORSAMDPROC, glDeletePerfMonitorsAMD);
-	get_proc_gl(GL_AMD_performance_monitor, PFNGLSELECTPERFMONITORCOUNTERSAMDPROC, glSelectPerfMonitorCountersAMD);
-	get_proc_gl(GL_AMD_performance_monitor, PFNGLBEGINPERFMONITORAMDPROC, glBeginPerfMonitorAMD);
-	get_proc_gl(GL_AMD_performance_monitor, PFNGLENDPERFMONITORAMDPROC, glEndPerfMonitorAMD);
-	get_proc_gl(GL_AMD_performance_monitor, PFNGLGETPERFMONITORCOUNTERDATAAMDPROC, glGetPerfMonitorCounterDataAMD);
-
 	return egl;
 }
 
