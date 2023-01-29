@@ -27,13 +27,13 @@ $ sudo apt install debhelper
  If you want to build a new image, use the Dockerfile
 ```bash
 $ docker build . -t registry.nicesj.com/ncway:latest
-$ docker run -it -v $PWD:/root registry.nicesj.com/ncway:latest /bin/bash
+$ docker run -it --device=/dev/dri:/dev/dri -v $PWD:/root registry.nicesj.com/ncway:latest /bin/bash
 ```
 
  You can pull the docker image of course
 ```bash
 $ docker pull registry.nicesj.com/ncway:latest
-$ docker run -it -v $PWD:/root registry.nicesj.com/ncway:latest /bin/bash
+$ docker run -it --device=/dev/dri:/dev/dri -v $PWD:/root registry.nicesj.com/ncway:latest /bin/bash
 ```
 
 # Debian packaging (Ubuntu package generation)
