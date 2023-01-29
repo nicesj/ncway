@@ -38,3 +38,15 @@ build
 .viminfo
 .gitconfig
 .ssh
+
+# Debian packaging files
+debian/.debhelper/
+debian/debhelper-build-stamp
+debian/files
+debian/ncway-samples.debhelper.log
+debian/ncway-samples.substvars
+debian/ncway-samples/
+debian/ncway.debhelper.log
+debian/ncway.substvars
+debian/ncway/
+debian/tmp/

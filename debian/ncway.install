@@ -1,1 +1,2 @@
-/usr/lib/*/libncway.so*
+/usr/bin/ncway
+#/usr/lib/*/libncway.so*

@@ -8,6 +8,7 @@ RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone
 RUN apt-get update && apt-get upgrade -y
 RUN apt-get install -y --no-install-recommends cmake bc ninja-build git openssh-client g++10 curl wget unzip software-properties-common diffutils patch make file elfutils vim
 RUN apt-get install -y --no-install-recommends libwayland-dev libegl1-mesa-dev build-essential libinput-dev libdrm-dev libgbm-dev
+RUN apt-get install -y --no-install-recommends debhelper
 RUN mkdir -m 700 /root/.ssh; \
     touch -m 600 /root/.ssh/known_hosts; \
     ssh-keyscan github.com > /root/.ssh/known_hosts

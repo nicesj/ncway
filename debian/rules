@@ -14,7 +14,7 @@ override_dh_clean:
 override_dh_auto_configure:
 	mkdir -p ${BUILDDIR}; \
 	cd ${BUILDDIR}; \
-	cmake .. -DNAME=ncway
+	cmake .. -DCMAKE_INSTALL_PREFIX=/usr;
 
 override_dh_auto_build:
 	make -C ${BUILDDIR}

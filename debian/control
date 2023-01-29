@@ -8,17 +8,17 @@ Build-Depends: debhelper (>= 9)
 Package: ncway
 Architecture: any
 Depends: ${shlibs:Depends}, ${misc:Depends}
-Description: Distributed AI Framework
- Distributed AI Framework
+Description: Neverland Compositor
+ Neverland Compositor based on Wayland protocol
 
-Package: ncway-dev
-Architecture: any
-Depends: ${shlibs:Depends}, ${misc:Depends}
-Description: Development files for Distributed AI Framework
- Including headers and package configuration files
+#Package: ncway-dev
+#Architecture: any
+#Depends: ${shlibs:Depends}, ${misc:Depends}
+#Description: Development files for Neverland Compositor
+# Including headers and package configuration files
 
 Package: ncway-samples
 Architecture: any
 Depends: ${shlibs:Depends}, ${misc:Depends}
-Description: Samples to show how to use the generic C API set of the BeyonD framework
- Including a sample application developed using the generic C API set
+Description: Samples work with Neverland Compositor
+  The package includes sample client implementations for the Neverland Compositor
