@@ -6,12 +6,19 @@
 
 # Prerequsite
 
-```
+```bash
 $ sudo apt install libwayland-dev
 $ sudo apt install libegl1-mesa-dev
 $ sudo apt install cmake
 $ sudo apt install g++10
 $ sudo apt install build-essential
+```
+
+ If you are interested in the Ubuntu packaging,
+ you should install the debhelper package.
+
+```bash
+$ sudo apt install debhelper
 ```
 
 # Docker
@@ -27,6 +34,11 @@ $ docker run -it -v $PWD:/root registry.nicesj.com/ncway:latest /bin/bash
 ```bash
 $ docker pull registry.nicesj.com/ncway:latest
 $ docker run -it -v $PWD:/root registry.nicesj.com/ncway:latest /bin/bash
+```
+
+# Debian packaging (Ubuntu package generation)
+```bash
+$ dpkg-buildpackage -uc -us -b
 ```
 
 # References
