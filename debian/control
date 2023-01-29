@@ -1,0 +1,24 @@
+Source: ncway
+Maintainer: Sungjae Park <nicesj@nicesj.com>
+Section: libs
+Priority: optional
+Standards-Version: 0.0.1
+Build-Depends: debhelper (>= 9)
+
+Package: ncway
+Architecture: any
+Depends: ${shlibs:Depends}, ${misc:Depends}
+Description: Distributed AI Framework
+ Distributed AI Framework
+
+Package: ncway-dev
+Architecture: any
+Depends: ${shlibs:Depends}, ${misc:Depends}
+Description: Development files for Distributed AI Framework
+ Including headers and package configuration files
+
+Package: ncway-samples
+Architecture: any
+Depends: ${shlibs:Depends}, ${misc:Depends}
+Description: Samples to show how to use the generic C API set of the BeyonD framework
+ Including a sample application developed using the generic C API set

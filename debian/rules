@@ -1,0 +1,27 @@
+#!/usr/bin/make -f
+export DH_VERBOSE=1
+export BUILDDIR=build
+
+%:
+	dh $@ --parallel
+
+override_dh_auto_clean:
+	rm -rf ${BUILDDIR}
+
+override_dh_clean:
+	dh_clean $@
+
+override_dh_auto_configure:
+	mkdir -p ${BUILDDIR}; \
+	cd ${BUILDDIR}; \
+	cmake .. -DNAME=ncway
+
+override_dh_auto_build:
+	make -C ${BUILDDIR}
+
+override_dh_auto_install:
+	DESTDIR=$(CURDIR)/debian/tmp make -C ${BUILDDIR} install
+
+override_dh_install:
+	dh_install --sourcedir=debian/tmp
+	dh_missing --list-missing
