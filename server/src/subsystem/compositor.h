@@ -2,10 +2,17 @@
 #include "../subsystem.h"
 
 namespace ncway {
-class Renderer : public Subsystem {
+class Compositor : public Subsystem {
+private:
+	Compositor(void);
+	virtual ~Compositor(void);
+
+private:
+	static std::shared_ptr<Compositor *> instance;
+
 public:
-	virtual ~Renderer(void) = default;
-	Renderer(void) = default;
+	static std::shared_ptr<Compositor *> getInstance(void);
+	static void destroy(void);
 
 public:
 	int handler(int fd, uint32_t mask) override;
